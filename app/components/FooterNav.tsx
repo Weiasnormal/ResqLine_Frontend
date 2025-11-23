@@ -2,10 +2,15 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const FooterNav = () => {
+interface FooterNavProps {
+  activeTab?: string;
+  onTabPress?: (tab: string) => void;
+}
+
+const FooterNav = ({ activeTab = 'report', onTabPress }: FooterNavProps) => {
   const handleNavPress = (screen: string) => {
     console.log(`Navigate to ${screen}`);
-    // Add navigation logic here when implementing with navigation library
+    onTabPress?.(screen);
   };
 
   const navItems = [
@@ -30,19 +35,19 @@ const FooterNav = () => {
               </View>
             ) : (
               <Ionicons
-                name={item.key === 'report' ? item.activeIcon as any : item.icon as any}
+                name={item.key === activeTab ? item.activeIcon as any : item.icon as any}
                 size={24}
-                color={item.key === 'report' ? '#000' : '#999'}
+                color={item.key === activeTab ? '#000' : '#999'}
               />
             )}
             <Text style={[
               styles.tabLabel,
-              item.key === 'report' && styles.activeTabLabel,
+              item.key === activeTab && styles.activeTabLabel,
               item.isSpecial && styles.sosLabel
             ]}>
               {item.name}
             </Text>
-            {item.key === 'report' && <View style={styles.activeIndicator} />}
+            {item.key === activeTab && <View style={styles.activeIndicator} />}
           </TouchableOpacity>
         ))}
       </View>

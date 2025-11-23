@@ -143,6 +143,7 @@ const ReportBody = () => {
             value={title}
             onChangeText={setTitle}
             placeholderTextColor="#999"
+            
           />
           <TextInput
             style={[styles.input, styles.textArea]}
@@ -242,16 +243,16 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: '#000000ff',
     borderRadius: 8,
     backgroundColor: '#fff',
   },
   picker: {
-    height: 50,
+    height: 55,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: '#000000ff',
     borderRadius: 8,
     padding: 15,
     fontSize: 16,

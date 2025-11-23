@@ -2,23 +2,23 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../components/Header';
-import ReportBody from '../components/ReportBody';
+import SOSBody from '../components/SOSBody';
 import FooterNav from '../components/FooterNav';
 
-interface ReportScreenProps {
+interface SOSScreenProps {
   onTabPress?: (tab: string) => void;
 }
 
-const ReportScreen = ({ onTabPress }: ReportScreenProps) => {
+const SOSScreen = ({ onTabPress }: SOSScreenProps) => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <View style={styles.wrapper}>
-          <Header title="Report" />
+          <Header title="SOS" />
           <View style={styles.body}>
-            <ReportBody />
+            <SOSBody />
           </View>
-          <FooterNav activeTab="report" onTabPress={onTabPress} />
+          <FooterNav activeTab="sos" onTabPress={onTabPress} />
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -38,4 +38,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReportScreen;
+export default SOSScreen;
