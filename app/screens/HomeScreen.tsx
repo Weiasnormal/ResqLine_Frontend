@@ -1,0 +1,41 @@
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import Header from '../components/Header';
+import HomeBody from '../components/HomeBody';
+import FooterNav from '../components/FooterNav';
+
+interface HomeScreenProps {
+  onTabPress?: (tab: string) => void;
+}
+
+const HomeScreen = ({ onTabPress }: HomeScreenProps) => {
+  return (
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.wrapper}>
+          <Header title="Home" />
+          <View style={styles.body}>
+            <HomeBody onTabPress={onTabPress} />
+          </View>
+          <FooterNav activeTab="home" onTabPress={onTabPress} />
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  wrapper: {
+    flex: 1,
+  },
+  body: {
+    flex: 1,
+  },
+});
+
+export default HomeScreen;

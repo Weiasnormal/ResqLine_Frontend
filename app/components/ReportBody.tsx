@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: '#000',
     marginRight: 8,

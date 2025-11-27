@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import HotlineModal from './HotlineModal';
 import { EMERGENCY_DEPARTMENTS, Department, DepartmentCategory } from '../data/emergencyDepartments';
@@ -14,41 +14,31 @@ const HotlineBody: React.FC = () => {
       id: 'hospitals' as DepartmentCategory,
       title: 'Hospitals',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.hospitals.length} departments`,
-      icon: 'medical',
-      iconColor: '#FF6B6B',
-      backgroundColor: '#FFE5E5',
+      iconSource: require('../../assets/EmergencyIcons/hospital.png'),
     },
     {
       id: 'fire' as DepartmentCategory,
       title: 'Fire Departments',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.fire.length} departments`,
-      icon: 'flame',
-      iconColor: '#FF8C42',
-      backgroundColor: '#FFF2E5',
+      iconSource: require('../../assets/EmergencyIcons/fire.png'),
     },
     {
       id: 'police' as DepartmentCategory,
       title: 'Police Stations',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.police.length} departments`,
-      icon: 'shield-checkmark',
-      iconColor: '#4ECDC4',
-      backgroundColor: '#E5F9F6',
+      iconSource: require('../../assets/EmergencyIcons/police.png'),
     },
     {
       id: 'power' as DepartmentCategory,
       title: 'Power',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.power.length} departments`,
-      icon: 'flash',
-      iconColor: '#FFD93D',
-      backgroundColor: '#FFF9E5',
+      iconSource: require('../../assets/EmergencyIcons/power.png'),
     },
     {
       id: 'disaster' as DepartmentCategory,
       title: 'Disaster Response',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.disaster.length} departments`,
-      icon: 'car',
-      iconColor: '#6BCF7F',
-      backgroundColor: '#E8F5E8',
+      iconSource: require('../../assets/EmergencyIcons/disaster.png'),
     },
   ];
 
@@ -98,11 +88,11 @@ const HotlineBody: React.FC = () => {
               activeOpacity={0.7}
             >
               <View style={styles.categoryContent}>
-                <View style={[styles.iconContainer, { backgroundColor: category.backgroundColor }]}>
-                  <Ionicons 
-                    name={category.icon as any} 
-                    size={24} 
-                    color={category.iconColor} 
+                <View style={styles.iconContainer}>
+                  <Image 
+                    source={category.iconSource} 
+                    style={styles.categoryIcon}
+                    resizeMode="contain"
                   />
                 </View>
                 <View style={styles.categoryInfo}>
@@ -129,7 +119,7 @@ const HotlineBody: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F2F4F6',
   },
   content: {
     padding: 20,
@@ -143,7 +133,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: '#333',
     marginRight: 8,
@@ -199,6 +189,10 @@ const styles = StyleSheet.create({
   categorySubtitle: {
     fontSize: 14,
     color: '#666',
+  },
+  categoryIcon: {
+    width: 40,
+    height: 40,
   },
 });
 
