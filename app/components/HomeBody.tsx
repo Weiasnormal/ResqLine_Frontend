@@ -15,6 +15,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import HotlineModal from './HotlineModal';
 import ReportCard, { Report } from './ReportCard';
 import { EMERGENCY_DEPARTMENTS, DepartmentCategory } from '../data/emergencyDepartments';
+import HospitalIcon from '../../assets/EmergencyIcons/hospital.svg';
+import FireIcon from '../../assets/EmergencyIcons/fire.svg';
+import PoliceIcon from '../../assets/EmergencyIcons/police.svg';
 
 interface HomeBodyProps {
   onTabPress?: (tab: string) => void;
@@ -63,19 +66,19 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress }) => {
       id: 'hospitals' as DepartmentCategory,
       title: 'Hospitals',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.hospitals.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/hospital.png'),
+      IconComponent: HospitalIcon,
     },
     {
       id: 'fire' as DepartmentCategory,
       title: 'Fire Departments',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.fire.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/fire.png'),
+      IconComponent: FireIcon,
     },
     {
       id: 'police' as DepartmentCategory,
       title: 'Police Stations',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.police.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/police.png'),
+      IconComponent: PoliceIcon,
     },
   ];
 
@@ -220,10 +223,9 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress }) => {
             >
               <View style={styles.categoryContent}>
                 <View style={styles.iconContainer}>
-                  <Image 
-                    source={category.iconSource} 
-                    style={styles.categoryIcon}
-                    resizeMode="contain"
+                  <category.IconComponent 
+                    width={42}
+                    height={42}
                   />
                 </View>
                 <View style={styles.categoryInfo}>

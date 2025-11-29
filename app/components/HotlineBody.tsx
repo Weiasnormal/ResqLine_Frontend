@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import HotlineModal from './HotlineModal';
 import { EMERGENCY_DEPARTMENTS, Department, DepartmentCategory } from '../data/emergencyDepartments';
+
+// Import SVG icons as React components
+import HospitalIcon from '../../assets/EmergencyIcons/hospital.svg';
+import FireIcon from '../../assets/EmergencyIcons/fire.svg';
+import PoliceIcon from '../../assets/EmergencyIcons/police.svg';
+import PowerIcon from '../../assets/EmergencyIcons/power.svg';
+import DisasterIcon from '../../assets/EmergencyIcons/disaster.svg';
 
 const HotlineBody: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -14,31 +21,31 @@ const HotlineBody: React.FC = () => {
       id: 'hospitals' as DepartmentCategory,
       title: 'Hospitals',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.hospitals.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/hospital.png'),
+      IconComponent: HospitalIcon,
     },
     {
       id: 'fire' as DepartmentCategory,
       title: 'Fire Departments',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.fire.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/fire.png'),
+      IconComponent: FireIcon,
     },
     {
       id: 'police' as DepartmentCategory,
       title: 'Police Stations',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.police.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/police.png'),
+      IconComponent: PoliceIcon,
     },
     {
       id: 'power' as DepartmentCategory,
       title: 'Power',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.power.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/power.png'),
+      IconComponent: PowerIcon,
     },
     {
       id: 'disaster' as DepartmentCategory,
       title: 'Disaster Response',
       subtitle: `See all ${EMERGENCY_DEPARTMENTS.disaster.length} departments`,
-      iconSource: require('../../assets/EmergencyIcons/disaster.png'),
+      IconComponent: DisasterIcon,
     },
   ];
 
@@ -89,10 +96,9 @@ const HotlineBody: React.FC = () => {
             >
               <View style={styles.categoryContent}>
                 <View style={styles.iconContainer}>
-                  <Image 
-                    source={category.iconSource} 
-                    style={styles.categoryIcon}
-                    resizeMode="contain"
+                  <category.IconComponent 
+                    width={42}
+                    height={42}
                   />
                 </View>
                 <View style={styles.categoryInfo}>
