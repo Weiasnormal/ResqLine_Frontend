@@ -1,25 +1,29 @@
 import React from 'react';
-import { StyleSheet, View, StatusBar } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  StatusBar,
+} from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../components/Header';
-import ReportBody from '../components/ReportBody';
-import FooterNav from '../components/FooterNav';
 
-interface ReportScreenProps {
-  onTabPress?: (tab: string) => void;
+import FooterNav from '../components/FooterNav';
+import ProfileBody from '../components/ProfileBody';
+
+interface ProfileScreenProps {
+  onTabPress: (tab: string) => void;
 }
 
-const ReportScreen = ({ onTabPress }: ReportScreenProps) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ onTabPress }) => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffffff" />
+        <StatusBar barStyle="light-content" backgroundColor="#FC8100" />
         <View style={styles.wrapper}>
-          <Header title="Report" />
           <View style={styles.body}>
-            <ReportBody />
+            <ProfileBody onTabPress={onTabPress} />
           </View>
-          <FooterNav activeTab="report" onTabPress={onTabPress} />
+          
+          <FooterNav activeTab="profile" onTabPress={onTabPress} />
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -39,4 +43,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReportScreen;
+export default ProfileScreen;

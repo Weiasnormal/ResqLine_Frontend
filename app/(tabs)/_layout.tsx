@@ -6,6 +6,7 @@ import ReportScreen from '../screens/ReportScreen';
 import SOSScreen from '../screens/SOSScreen';
 import HotlineScreen from '../screens/HotlineScreen';
 import HomeScreen from '../screens/HomeScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const TabsLayout = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -22,6 +23,8 @@ const TabsLayout = () => {
         return <HotlineScreen onTabPress={handleTabPress} />;
       case 'report':
         return <ReportScreen onTabPress={handleTabPress} />;
+      case 'profile':
+        return <ProfileScreen onTabPress={handleTabPress} />;
       case 'home':
       default:
         return <HomeScreen onTabPress={handleTabPress} />;

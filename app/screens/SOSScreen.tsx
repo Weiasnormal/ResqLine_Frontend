@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, StatusBar } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../components/Header';
 import SOSBody from '../components/SOSBody';
@@ -13,6 +13,7 @@ const SOSScreen = ({ onTabPress }: SOSScreenProps) => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffffff" />
         <View style={styles.wrapper}>
           <Header title="SOS" />
           <View style={styles.body}>
