@@ -10,16 +10,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { locationService, UserLocation } from '../services/locationService';
+import { useUserProfile } from '../contexts/UserProfileContext';
 
 import Profilebg from '../../assets/Profilebg.svg';
 import Profile from '../../assets/Profile.svg';
 
 interface ProfileBodyProps {
   onTabPress?: (tab: string) => void;
+  onEditInformation?: () => void;
 }
 
-const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress }) => {
-
+const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation }) => {
+  const { profile, getFullName } = useUserProfile();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
@@ -42,7 +44,9 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress }) => {
   );
 
   const handleRecentReports = () => {};
-  const handleEditInformation = () => {};
+  const handleEditInformation = () => {
+    onEditInformation?.();
+  };
   const handlePhoneNumber = () => {};
   const handleNotifications = () => {};
   const handleLocationAccess = () => {};
@@ -104,8 +108,8 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress }) => {
             </View>
             
             <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>Wincel Crusit</Text>
-              <Text style={styles.userPhone}>+63 909 246 5965</Text>
+              <Text style={styles.userName}>{getFullName()}</Text>
+              <Text style={styles.userPhone}>{profile.phoneNumber}</Text>
               <Text style={styles.userLocation}>{getUserLocationText()}</Text>
             </View>
             

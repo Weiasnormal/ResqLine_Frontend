@@ -11,16 +11,17 @@ import ProfileBody from '../components/ProfileBody';
 
 interface ProfileScreenProps {
   onTabPress: (tab: string) => void;
+  onEditInformation?: () => void;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ onTabPress }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ onTabPress, onEditInformation }) => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#FC8100" />
         <View style={styles.wrapper}>
           <View style={styles.body}>
-            <ProfileBody onTabPress={onTabPress} />
+            <ProfileBody onTabPress={onTabPress} onEditInformation={onEditInformation} />
           </View>
           
           <FooterNav activeTab="profile" onTabPress={onTabPress} />
