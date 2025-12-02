@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 
-import WelcomeScreen from '../screens/WelcomeScreen';
-import ReportScreen from '../screens/ReportScreen';
-import SOSScreen from '../screens/SOSScreen';
-import HotlineScreen from '../screens/HotlineScreen';
-import HomeScreen from '../screens/HomeScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import EditInformationScreen from '../screens/EditInformationScreen';
-import ChangeNumberScreen from '../screens/ChangeNumberScreen';
-import RecentReportScreen from '../screens/RecentReportScreen';
-import { UserProfileProvider } from '../../src/contexts/UserProfileContext';
+import WelcomeScreen from '../(screens)/WelcomeScreen';
+import ReportScreen from '../(screens)/ReportScreen';
+import SOSScreen from '../(screens)/SOSScreen';
+import HotlineScreen from '../(screens)/HotlineScreen';
+import HomeScreen from '../(screens)/HomeScreen';
+import ProfileScreen from '../(screens)/ProfileScreen';
+import EditInformationScreen from '../(screens)/EditInformationScreen';
+import ChangeNumberScreen from '../(screens)/ChangeNumberScreen';
+import RecentReportScreen from '../(screens)/RecentReportScreen';
+import SignUpBasicInfo from '../(screens)/SignUp-BasicInfo';
+import SignUpVerification from '../(screens)/SignUp-Verification';
 
 const TabsLayout = () => {
   const [activeTab, setActiveTab] = useState('welcome');
@@ -65,6 +66,10 @@ const TabsLayout = () => {
     switch (activeTab) {
       case 'welcome':
         return <WelcomeScreen navigation={{ navigate: handleTabPress }} />;
+      case 'SignUp-BasicInfo':
+        return <SignUpBasicInfo navigation={{ navigate: handleTabPress }} />;
+      case 'SignUp-Verification':
+        return <SignUpVerification navigation={{ navigate: handleTabPress }} />;
       case 'sos':
         return <SOSScreen onTabPress={handleTabPress} />;
       case 'hotline':
@@ -80,9 +85,7 @@ const TabsLayout = () => {
   };
 
   return (
-    <UserProfileProvider>
-      <View style={{ flex: 1 }}>{renderScreen()}</View>
-    </UserProfileProvider>
+    <View style={{ flex: 1 }}>{renderScreen()}</View>
   );
 };
 

@@ -38,7 +38,7 @@ const WelcomeScreen = ({ navigation }: any) => {
             {/* Sign Up Button */}
             <TouchableOpacity
               style={styles.signUpButton}
-              onPress={() => navigation.navigate('SignUp')}
+              onPress={() => navigation.navigate('SignUp-BasicInfo')}
             >
               <Text style={styles.signUpText}>Sign up</Text>
             </TouchableOpacity>
@@ -46,7 +46,7 @@ const WelcomeScreen = ({ navigation }: any) => {
             {/* Log In Button */}
             <TouchableOpacity
               style={styles.logInButton}
-              onPress={() => navigation.navigate('LogIn')}
+              onPress={() => navigation.navigate('(screens)/VerifyNumberScreen')}
             >
               <Text style={styles.logInText}>Log In</Text>
             </TouchableOpacity>
@@ -54,7 +54,7 @@ const WelcomeScreen = ({ navigation }: any) => {
             {/* Continue as Guest Button */}
             <TouchableOpacity
               style={styles.guestButton}
-              onPress={() => navigation.navigate('Home')}
+              onPress={() => navigation.navigate('(tabs)')}
             >
               <Text style={styles.guestText}>Continue as Guest</Text>
             </TouchableOpacity>
