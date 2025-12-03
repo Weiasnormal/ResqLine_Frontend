@@ -14,6 +14,8 @@ import { useUserProfile } from '../../contexts/UserProfileContext';
 
 import Profilebg from '../../../assets/Profilebg.svg';
 import Profile from '../../../assets/Profile.svg';
+import LogoutConfirm from '../overlays/LogoutConfirm';
+import { useRouter } from 'expo-router';
 
 interface ProfileBodyProps {
   onTabPress?: (tab: string) => void;
@@ -26,6 +28,8 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
   const { profile, getFullName } = useUserProfile();
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const router = useRouter();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -59,8 +63,13 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
   const handleAboutResqLine = () => {};
   const handlePrivacyPolicy = () => {};
   const handleTermsOfService = () => {};
-  const handleLogOut = () => {};
+  const handleLogOut = () => {
+    setShowLogoutConfirm(true);
+  };
   const handleDeleteAccount = () => {};
+  const handleCancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
 
   const formatPhoneNumber = (phoneNumber: string) => {
     
@@ -187,6 +196,16 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
           <Text style={styles.deleteAccountButtonText}>Delete Account</Text>
         </TouchableOpacity>
       </View>
+      {/* Logout confirmation overlay */}
+      <LogoutConfirm
+        visible={showLogoutConfirm}
+        onCancel={handleCancelLogout}
+        onLogout={() => {
+          // optional: clear local profile/auth state here before redirect
+          setShowLogoutConfirm(false);
+          router.replace('(screens)/WelcomeScreen');
+        }}
+      />
     </ScrollView>
   );
 };
