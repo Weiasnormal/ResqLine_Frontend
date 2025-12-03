@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,9 +10,8 @@ const WelcomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <LinearGradient colors={['#FF9427', '#F57C00']} style={styles.container}>
+      <LinearGradient colors={['#FF9427', '#F57C00']} style={styles.gradientArea}>
         <View style={styles.top}>
-          {/* Logo */}
           <View style={styles.logoContainer}>
             <Image
               source={require('../../assets/White-Logo.png')}
@@ -24,64 +23,58 @@ const WelcomeScreen: React.FC = () => {
         </View>
 
         <View style={styles.center}>
-          {/* Illustration */}
           <View style={styles.illustrationContainer}>
             <Image
               source={require('../../assets/Welcome-Illustration.png')}
               style={styles.illustration}
               resizeMode="contain"
             />
-
-            {/* Tagline */}
             <Text style={styles.tagline}>
               Stay Alert. Stay Connected. Stay Safe.
             </Text>
           </View>
         </View>
-
-        {/* White Section */}
-        <View style={[styles.whiteSection, { paddingBottom: 30 + insets.bottom }]}>
-          {/* Sign Up Button */}
-          <TouchableOpacity
-            style={styles.signUpButton}
-            onPress={() => {
-              router.push('(screens)/SignUp-BasicInfo');
-            }}
-          >
-            <Text style={styles.signUpText}>Sign Up</Text>
-          </TouchableOpacity>
-
-          {/* Log In Button */}
-          <TouchableOpacity
-            style={styles.logInButton}
-            onPress={() => router.push('(screens)/LogIn-Number')}
-          >
-            <Text style={styles.logInText}>Log In</Text>
-          </TouchableOpacity>
-
-          {/* Continue as Guest Button */}
-          <TouchableOpacity
-            style={styles.guestButton}
-            onPress={() => router.push('(tabs)?tab=home')}
-          >
-            <Text style={styles.guestText}>Continue as Guest</Text>
-          </TouchableOpacity>
-        </View>
       </LinearGradient>
+
+      <SafeAreaView edges={['bottom']} style={[styles.whiteSection, { paddingBottom: 25 + insets.bottom }]}>
+        <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
+        <TouchableOpacity
+          style={styles.signUpButton}
+          onPress={() => {
+            router.push('(screens)/SignUp-BasicInfo');
+          }}
+        >
+          <Text style={styles.signUpText}>Sign Up</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.logInButton}
+          onPress={() => router.push('(screens)/LogIn-Number')}
+        >
+          <Text style={styles.logInText}>Log In</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.guestButton}
+          onPress={() => router.push('(tabs)?tab=home')}
+        >
+          <Text style={styles.guestText}>Continue as Guest</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FF9427' },
-  container: {
+  gradientArea: {
     flex: 1,
     justifyContent: 'space-between',
   },
   top: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    alignItems: 'center', // centered logo/logoContainer
+    alignItems: 'center',
     justifyContent: 'center',
   },
   center: {
@@ -101,9 +94,9 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontSize: 30,
-    fontWeight: '700',
     color: '#fff',
     marginLeft: 10,
+    fontFamily: 'OpenSans_700Bold',
   },
   illustrationContainer: {
     justifyContent: 'center',
@@ -118,21 +111,21 @@ const styles = StyleSheet.create({
   },
   whiteSection: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingVertical: 30,
     alignItems: 'center',
     gap: 12,
   },
   tagline: {
     fontSize: 24,
-    fontWeight: '400',
     color: '#fff',
     textAlign: 'center',
     lineHeight: 30,
     paddingHorizontal: 20,
+    fontFamily: 'OpenSans_400Regular',
   },
   signUpButton: {
     width: '100%',
@@ -146,7 +139,7 @@ const styles = StyleSheet.create({
   signUpText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   logInButton: {
     width: '100%',
@@ -162,7 +155,7 @@ const styles = StyleSheet.create({
   logInText: {
     color: '#FF9427',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   guestButton: {
     width: '100%',
@@ -173,7 +166,7 @@ const styles = StyleSheet.create({
   guestText: {
     color: '#FF9427',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
 });
 

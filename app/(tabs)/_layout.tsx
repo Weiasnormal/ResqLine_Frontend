@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput } from 'react-native';
 
 import WelcomeScreen from '../(screens)/WelcomeScreen';
 import ReportScreen from '../(screens)/ReportScreen';
@@ -12,6 +12,8 @@ import ChangeNumberScreen from '../(screens)/ChangeNumberScreen';
 import RecentReportScreen from '../(screens)/RecentReportScreen';
 // Sign-up screens are routed separately; do not include them here
 import { useLocalSearchParams } from 'expo-router';
+
+import { useFonts, OpenSans_400Regular, OpenSans_600SemiBold, OpenSans_700Bold } from '@expo-google-fonts/open-sans';
 
 // Cast imported screen modules to a React component type that accepts any props
 const Welcome = WelcomeScreen as React.ComponentType<any>;
@@ -97,4 +99,33 @@ const TabsLayout = () => {
   );
 };
 
-export default TabsLayout;
+// Fonts wrapper: load Open Sans and set global default font for Text and TextInput
+const AppWithFonts: React.FC = () => {
+  const [fontsLoaded] = useFonts({
+    OpenSans_400Regular,
+    OpenSans_600SemiBold,
+    OpenSans_700Bold,
+  });
+
+  useEffect(() => {
+    if (!fontsLoaded) return;
+
+    // Ensure defaultProps exist
+    if ((Text as any).defaultProps == null) (Text as any).defaultProps = {};
+    if ((TextInput as any).defaultProps == null) (TextInput as any).defaultProps = {};
+
+    // Set default fontFamily if not already set
+    const defaultFontFamily = 'OpenSans_400Regular';
+    const textDefault = (Text as any).defaultProps.style;
+    (Text as any).defaultProps.style = Array.isArray(textDefault) ? [{ fontFamily: defaultFontFamily }, ...textDefault] : [{ fontFamily: defaultFontFamily }, textDefault];
+
+    const inputDefault = (TextInput as any).defaultProps.style;
+    (TextInput as any).defaultProps.style = Array.isArray(inputDefault) ? [{ fontFamily: defaultFontFamily }, ...inputDefault] : [{ fontFamily: defaultFontFamily }, inputDefault];
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
+  return <TabsLayout />;
+};
+
+export default AppWithFonts;
