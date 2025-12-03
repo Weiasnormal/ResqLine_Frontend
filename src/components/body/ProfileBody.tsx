@@ -107,23 +107,36 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
     return 'Secret Location'; 
   };
 
+  // changed: accept disabled flag and style/disable accordingly
   const renderSectionItem = (
     title: string,
     iconName: keyof typeof Ionicons.glyphMap,
     onPress: () => void,
-    showDivider: boolean = true
-  ) => (
-    <>
-      <TouchableOpacity style={styles.sectionItem} onPress={onPress}>
-        <View style={styles.sectionItemLeft}>
-          <Ionicons name={iconName} size={20} color="#666" style={styles.sectionIcon} />
-          <Text style={styles.sectionItemText}>{title}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={16} color="#000000ff" />
-      </TouchableOpacity>
-      {showDivider && <View style={styles.divider} />}
-    </>
-  );
+    showDivider: boolean = true,
+    disabled: boolean = false
+  ) => {
+    const disabledColor = '#a4a3a7ff';
+    const iconColor = disabled ? disabledColor : '#666';
+    const textColor = disabled ? disabledColor : '#333';
+    const chevronColor = disabled ? disabledColor : '#000000ff';
+
+    return (
+      <>
+        <TouchableOpacity
+          style={[styles.sectionItem, disabled && styles.disabledRow]}
+          onPress={onPress}
+          disabled={disabled}
+        >
+          <View style={styles.sectionItemLeft}>
+            <Ionicons name={iconName} size={20} color={iconColor} style={styles.sectionIcon} />
+            <Text style={[styles.sectionItemText, { color: textColor }]}>{title}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={chevronColor} />
+        </TouchableOpacity>
+        {showDivider && <View style={styles.divider} />}
+      </>
+    );
+  };
 
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -172,16 +185,16 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
       {/* Contact Us Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Contact Us</Text>
-        {renderSectionItem('Help & Support', 'help-circle-outline', handleHelpSupport)}
-        {renderSectionItem('Report a Problem', 'warning-outline', handleReportProblem)}
-        {renderSectionItem('About ResqLine', 'information-circle-outline', handleAboutResqLine, false)}
+        {renderSectionItem('Help & Support', 'help-circle-outline', handleHelpSupport, true, true)}
+        {renderSectionItem('Report a Problem', 'warning-outline', handleReportProblem, true, true)}
+        {renderSectionItem('About ResqLine', 'information-circle-outline', handleAboutResqLine, false, true)}
       </View>
 
       {/* Legal Section */}
       <View style={styles.sectionLegal}>
         <Text style={styles.sectionTitle}>Legal</Text>
-        {renderSectionItem('Privacy Policy', 'document-text-outline', handlePrivacyPolicy)}
-        {renderSectionItem('Terms of Service', 'document-outline', handleTermsOfService, false)}
+        {renderSectionItem('Privacy Policy', 'document-text-outline', handlePrivacyPolicy, true, true)}
+        {renderSectionItem('Terms of Service', 'document-outline', handleTermsOfService, false, true)}
       </View>
 
       {/* Action Buttons */}
@@ -319,6 +332,9 @@ const styles = StyleSheet.create({
   },
   divider: {
     marginLeft: 32,
+  },
+  disabledRow: {
+    opacity: 0.55,
   },
 
   // Action Buttons Styles
