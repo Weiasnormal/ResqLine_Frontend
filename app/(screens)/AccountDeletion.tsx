@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import InlineTextField from '../../src/components/inputs/InlineTextField';
 
 const AccountDeletion: React.FC = () => {
   const router = useRouter();
@@ -43,48 +44,40 @@ const AccountDeletion: React.FC = () => {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.title}>Confirm Account Deletion</Text>
-          <Text style={styles.description}>
-            Deleting your account will permanently remove all your personal information, emergency reports, and saved data.
-            This action cannot be undone.
-          </Text>
-
-          <Text style={styles.instruction}>To continue, please type "DELETE" in the field below.</Text>
-
-          <View style={[styles.inputWrapper, focused && styles.inputWrapperFocused]}>
-            {/* floating/inline label */}
-            <Text
-              style={[
-                styles.label,
-                (focused || confirmation.length > 0) ? styles.labelFocused : styles.labelUnfocused,
-              ]}
-            >
-              Confirmation
+          <View style={styles.topContent}>
+            <Text style={styles.title}>Confirm Account Deletion</Text>
+            <Text style={styles.description}>
+              Deleting your account will permanently remove all your personal information, emergency reports, and saved data.
+              This action cannot be undone.
             </Text>
 
-            <TextInput
-              style={styles.input}
+            <Text style={styles.instruction}>To continue, please type "DELETE" in the field below.</Text>
+
+            <InlineTextField
+              label="Confirmation"
               value={confirmation}
               onChangeText={setConfirmation}
-              placeholder={focused ? '' : ''}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
+              containerStyle={{ marginBottom: 20 }}
+              focusColor="#FF3E48"          // red focused border for this screen
+              labelFocusColor="#FF3E48"     // red focused label for this screen
               autoCapitalize="characters"
               autoCorrect={false}
             />
           </View>
 
-          <TouchableOpacity
-            style={[styles.deleteButton, !isDeletable && styles.deleteButtonDisabled]}
-            onPress={handleDelete}
-            disabled={!isDeletable}
-          >
-            <Text style={[styles.deleteText, !isDeletable && styles.deleteTextDisabled]}>Delete Account</Text>
-          </TouchableOpacity>
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={[styles.deleteButton, !isDeletable && styles.deleteButtonDisabled]}
+              onPress={handleDelete}
+              disabled={!isDeletable}
+            >
+              <Text style={[styles.deleteText, !isDeletable && styles.deleteTextDisabled]}>Delete Account</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.cancelButton} onPress={handleBack}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={handleBack}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -101,26 +94,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   backWrap: { padding: 4 },
-  headerTitle: { fontSize: 18, fontFamily: 'OpenSans_600SemiBold', color: '#111', textAlign: 'center', flex: 1 },
+  headerTitle: { fontSize: 16, fontFamily: 'OpenSans_700Bold', color: '#191716', textAlign: 'center', flex: 1, },
   container: { flex: 1 },
-  content: { padding: 20, flex: 1 },
-  title: { fontSize: 20, fontFamily: 'OpenSans_700Bold', marginBottom: 12 },
-  description: { fontSize: 14, color: '#666', marginBottom: 12, lineHeight: 20 },
-  instruction: { fontSize: 13, color: '#666', marginBottom: 12 },
+  content: { padding: 20, flex: 1, justifyContent: 'space-between' },
+  topContent: { },
+  footer: {
+    // keep buttons at the bottom and stretch horizontally
+    width: '100%',
+  },
+  title: { fontSize: 30, fontFamily: 'OpenSans_700Bold', marginBottom: 12 },
+  description: { fontSize: 16, color: '#191716', marginBottom: 12, lineHeight: 20 },
+  instruction: { fontSize: 16, color: '#191716', marginBottom: 40 },
 
   inputWrapper: {
     borderWidth: 1,
     borderColor: '#E5E5E5',
     borderRadius: 10,
     paddingHorizontal: 12,
-    paddingTop: 18,
-    paddingBottom: 12,
+    paddingTop: 15,
     marginBottom: 20,
     position: 'relative',
     backgroundColor: '#fff',
   },
   inputWrapperFocused: {
-    borderColor: '#FF9427',
+    borderColor: '#FF3E48',
   },
   label: {
     position: 'absolute',
@@ -136,19 +133,19 @@ const styles = StyleSheet.create({
   labelFocused: {
     top: -8,
     fontSize: 12,
-    color: '#FF9427',
+    color: '#FF3E48',
     fontFamily: 'OpenSans_600SemiBold',
   },
   input: {
     height: 40,
     fontSize: 16,
-    color: '#111',
+    color: 'default',
     padding: 0,
     margin: 0,
   },
 
   deleteButton: {
-    backgroundColor: '#FF4444',
+    backgroundColor: '#FF3E48',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -157,11 +154,12 @@ const styles = StyleSheet.create({
   deleteButtonDisabled: {
     backgroundColor: '#F1B6B6',
   },
-  deleteText: { color: '#fff', fontFamily: 'OpenSans_700Bold', fontSize: 16 },
+  deleteText: { color: '#fff', fontFamily: 'OpenSans_700Bold', fontSize: 14 },
   deleteTextDisabled: { color: '#fff' },
 
   cancelButton: { alignItems: 'center', paddingVertical: 8 },
-  cancelText: { color: '#666', fontFamily: 'OpenSans_600SemiBold',},
+  cancelText: { color: '#666', fontFamily: 'OpenSans_700Bold', fontSize: 14},
+
 });
 
 export default AccountDeletion;

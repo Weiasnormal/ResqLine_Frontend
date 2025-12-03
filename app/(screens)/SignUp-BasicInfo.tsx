@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   StatusBar,
   Animated,
   Platform,
@@ -14,13 +13,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSlideIn } from '../../src/transitions/slideIn';
 import { useRouter } from 'expo-router';
+import InlineTextField from '../../src/components/inputs/InlineTextField';
 
 const SignUpBasicInfo: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   const slideAnimation = useSlideIn({
     direction: 'right',
@@ -34,9 +34,11 @@ const SignUpBasicInfo: React.FC = () => {
     slideAnimation.slideIn();
   }, []);
 
+  const isPhoneValid = phoneNumber.replace(/\D/g, '').length === 11;
+
   const handleContinue = () => {
-    // Validate and proceed
-    if (!phoneNumber || !firstName || !lastName) return;
+    setPhoneTouched(true);
+    if (!isPhoneValid || !firstName || !lastName) return;
     const formatted = `+63${phoneNumber}`;
     const path = `(screens)/SignUp-Verification?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}&phoneNumber=${encodeURIComponent(
       formatted
@@ -64,86 +66,57 @@ const SignUpBasicInfo: React.FC = () => {
         >
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <Ionicons name="chevron-back" size={24} color="#000" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Sign Up (Basic Info)</Text>
+              <Ionicons name="chevron-back" size={24} color="#191716" />
+            </TouchableOpacity>           
             <View style={styles.headerSpacer} />
           </View>
 
           <View style={styles.content}>
             <Text style={styles.title}>Create Your ResqLine Account</Text>
-            <Text style={styles.subtitle}>
-              First, let's enter your basic information
-            </Text>
+            <Text style={styles.subtitle}>First, let's enter your basic information</Text>
 
             <View style={styles.phoneContainer}>
               <View style={styles.countryCodeBox}>
                 <Text style={styles.flag}>🇵🇭</Text>
                 <Text style={styles.countryCode}>+ 63</Text>
               </View>
-              <View
-                style={[
-                  styles.phoneInputWrapper,
-                  focusedField === 'phone' && styles.focusedInput,
-                ]}
-              >
-                {focusedField === 'phone' && (
-                  <Text style={styles.floatingLabel}>Phone number</Text>
-                )}
-                <TextInput
-                  style={styles.phoneInput}
-                  placeholder={focusedField !== 'phone' ? 'Phone number' : ''}
-                  placeholderTextColor="#999"
-                  value={phoneNumber}
-                  onChangeText={text => setPhoneNumber(text.replace(/\D/g, ''))}
-                  onFocus={() => setFocusedField('phone')}
-                  onBlur={() => !phoneNumber && setFocusedField(null)}
-                  keyboardType="phone-pad"
-                  maxLength={11}
-                />
-              </View>
+              
+              <InlineTextField
+                label="Phone number"
+                value={phoneNumber}
+                onChangeText={text => setPhoneNumber(text.replace(/\D/g, ''))}
+                containerStyle={styles.phoneInputWrapper}
+                keyboardType="phone-pad"
+                maxLength={11}
+                focusColor="#FF9427"
+                baseLabelColor="#999"
+                onBlur={() => setPhoneTouched(true)}
+                assistiveText={phoneTouched && !isPhoneValid ? 'Phone number must be 11 digits' : ''}
+              />
             </View>
 
-            <View style={styles.nameRow}>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  focusedField === 'firstName' && styles.focusedInput,
-                ]}
-              >
-                {focusedField === 'firstName' && (
-                  <Text style={styles.floatingLabel}>First name</Text>
-                )}
-                <TextInput
-                  style={styles.input}
-                  placeholder={focusedField !== 'firstName' ? 'First name' : ''}
-                  placeholderTextColor="#999"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  onFocus={() => setFocusedField('firstName')}
-                  onBlur={() => !firstName && setFocusedField(null)}
-                />
-              </View>
+            
 
-              <View
-                style={[
-                  styles.inputWrapper,
-                  focusedField === 'lastName' && styles.focusedInput,
-                ]}
-              >
-                {focusedField === 'lastName' && (
-                  <Text style={styles.floatingLabel}>Last name</Text>
-                )}
-                <TextInput
-                  style={styles.input}
-                  placeholder={focusedField !== 'lastName' ? 'Last name' : ''}
-                  placeholderTextColor="#999"
-                  value={lastName}
-                  onChangeText={setLastName}
-                  onFocus={() => setFocusedField('lastName')}
-                  onBlur={() => !lastName && setFocusedField(null)}
-                />
-              </View>
+            <View style={styles.nameRow}>
+              <InlineTextField
+                label="First name"
+                value={firstName}
+                onChangeText={setFirstName}
+                containerStyle={styles.inputWrapper}
+                autoCapitalize="words"
+                focusColor="#FF9427"
+                baseLabelColor="#999"
+              />
+
+              <InlineTextField
+                label="Last name"
+                value={lastName}
+                onChangeText={setLastName}
+                containerStyle={styles.inputWrapper}
+                autoCapitalize="words"
+                focusColor="#FF9427"
+                baseLabelColor="#999"
+              />
             </View>
 
             <Text style={styles.termsText}>
@@ -155,9 +128,9 @@ const SignUpBasicInfo: React.FC = () => {
 
           <View style={styles.footer}>
             <TouchableOpacity
-              style={[styles.continueButton, (!phoneNumber || !firstName || !lastName) ? styles.continueButtonDisabled : null]}
+              style={[styles.continueButton, (!isPhoneValid || !firstName || !lastName) ? styles.continueButtonDisabled : null]}
               onPress={handleContinue}
-              disabled={!phoneNumber || !firstName || !lastName}
+              disabled={!isPhoneValid || !firstName || !lastName}
             >
               <Text style={styles.continueButtonText}>Continue</Text>
             </TouchableOpacity>
@@ -171,7 +144,7 @@ const SignUpBasicInfo: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffffff',
   },
   keyboardAvoidingView: { flex: 1 },
   flex: { flex: 1 },
@@ -179,7 +152,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    justifyContent: 'space-between',
+    
   },
   header: {
     flexDirection: 'row',
@@ -195,23 +168,21 @@ const styles = StyleSheet.create({
     color: '#666',
     fontFamily: 'OpenSans_400Regular',
   },
-  headerSpacer: { width: 32 },
+  headerSpacer: { width: 32},
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontFamily: 'OpenSans_700Bold',
-    color: '#333',
-    marginBottom: 10,
+    color: '#191716',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#191716',
     marginBottom: 30,
-    textAlign: 'center',
   },
   phoneContainer: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 6,
   },
   countryCodeBox: {
     flexDirection: 'row',
@@ -234,12 +205,6 @@ const styles = StyleSheet.create({
   },
   phoneInputWrapper: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
     justifyContent: 'center',
   },
   phoneInput: {
@@ -247,19 +212,21 @@ const styles = StyleSheet.create({
     color: '#333',
     paddingVertical: 6,
   },
+  phoneError: {
+    color: '#FF3E48',
+    fontSize: 13,
+    marginTop: 6,
+    marginBottom: 12,
+    textAlign: 'left',
+  },
   nameRow: {
     flexDirection: 'row',
     gap: 12,
     marginBottom: 30,
+    marginTop: 20,
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
     justifyContent: 'center',
   },
   input: {

@@ -1,72 +1,104 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
 
 export interface UserProfile {
-  firstName: string;
-  lastName: string;
-  username: string;
-  phoneNumber: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  username?: string;
+  [key: string]: any;
 }
 
-interface UserProfileContextType {
+interface UserProfileContextValue {
   profile: UserProfile;
-  updateProfile: (updates: Partial<UserProfile>) => void;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  setProfile: (next: UserProfile) => Promise<void>;
   getFullName: () => string;
+  clearProfile: () => Promise<void>;
 }
 
-const defaultProfile: UserProfile = {
-  firstName: 'Wincel',
-  lastName: 'Crusit',
-  username: '',
-  phoneNumber: '+63 909 246 5965',
-};
+const STORAGE_KEY = 'resqline_user_profile';
 
-const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
+const UserProfileContext = createContext<UserProfileContextValue | null>(null);
 
-export const useUserProfile = () => {
-  const context = useContext(UserProfileContext);
-  if (!context) {
-    throw new Error('useUserProfile must be used within a UserProfileProvider');
-  }
-  return context;
-};
+export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [profile, setProfileState] = useState<UserProfile>({});
 
-interface UserProfileProviderProps {
-  children: ReactNode;
-}
+  // load from secure store once
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const raw = await SecureStore.getItemAsync(STORAGE_KEY);
+        if (!mounted) return;
+        if (raw) {
+          setProfileState(JSON.parse(raw));
+        }
+      } catch (err) {
+        console.warn('Failed to load user profile from SecureStore:', err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-export const UserProfileProvider: React.FC<UserProfileProviderProps> = ({ children }) => {
-  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
+  // set full profile and persist
+  const setProfile = async (next: UserProfile) => {
+    try {
+      setProfileState(next);
+      await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(next));
+    } catch (err) {
+      console.warn('Failed to persist profile to SecureStore:', err);
+    }
+  };
 
-  const updateProfile = (updates: Partial<UserProfile>) => {
-    setProfile(prevProfile => ({
-      ...prevProfile,
-      ...updates,
-    }));
+  // merge partial updates and persist
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    // use functional update so we always merge against latest state
+    setProfileState(prev => {
+      const next = { ...(prev || {}), ...(updates || {}) };
+      // persist in background (await not required here)
+      SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(next)).catch(err =>
+        console.warn('Failed to persist profile to SecureStore:', err)
+      );
+      return next;
+    });
+  };
+
+  const clearProfile = async () => {
+    try {
+      setProfileState({});
+      await SecureStore.deleteItemAsync(STORAGE_KEY);
+    } catch (err) {
+      console.warn('Failed to clear profile from SecureStore:', err);
+    }
   };
 
   const getFullName = () => {
-    // Prioritize username if it's filled
-    if (profile.username && profile.username.trim()) {
-      return profile.username.trim();
-    }
-    
-    if (!profile.firstName && !profile.lastName) {
-      return 'Wincel Crusit'; // fallback
-    }
-    return `${profile.firstName} ${profile.lastName}`.trim();
-  };
-
-  const value: UserProfileContextType = {
-    profile,
-    updateProfile,
-    getFullName,
+    const fn = profile.firstName?.trim() ?? '';
+    const ln = profile.lastName?.trim() ?? '';
+    if (!fn && !ln) return '';
+    return `${fn}${fn && ln ? ' ' : ''}${ln}`.trim();
   };
 
   return (
-    <UserProfileContext.Provider value={value}>
+    <UserProfileContext.Provider
+      value={{
+        profile,
+        updateProfile,
+        setProfile,
+        getFullName,
+        clearProfile,
+      }}
+    >
       {children}
     </UserProfileContext.Provider>
   );
 };
 
-export default UserProfileProvider;
+export const useUserProfile = (): UserProfileContextValue => {
+  const ctx = useContext(UserProfileContext);
+  if (!ctx) throw new Error('useUserProfile must be used within a UserProfileProvider');
+  return ctx;
+};
