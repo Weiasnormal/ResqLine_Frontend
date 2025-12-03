@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -92,7 +92,7 @@ const SignUpVerification: React.FC<Props> = ({ onBack, onSuccess }) => {
   const handleResend = async () => {
     if (isTimerActive) return;
     try {
-      setTimer(15);
+      setTimer(60);
       setIsTimerActive(true);
       setDigits(['', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -168,9 +168,8 @@ const SignUpVerification: React.FC<Props> = ({ onBack, onSuccess }) => {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
           <View style={styles.header}>
             <TouchableOpacity onPress={handleBack} style={styles.backWrap}>
-              <Ionicons name="chevron-back" size={22} color="#111" />
+              <Ionicons name="chevron-back" size={22} color="#191716" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Sign Up Verification (OTP)</Text>
             <View style={{ width: 32 }} />
           </View>
 
@@ -231,9 +230,9 @@ const styles = StyleSheet.create({
   },
   backWrap: { padding: 4 },
   headerTitle: { fontSize: 14, fontFamily: 'OpenSans_600SemiBold', color: '#444' },
-  body: { paddingHorizontal: 20, paddingTop: 20, alignItems: 'center' },
-  title: { fontSize: 28, fontFamily: 'OpenSans_700Bold', color: '#111', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 28, lineHeight: 20 },
+  body: { paddingHorizontal: 20, paddingTop: 20, flex: 1 },
+  title: { fontSize: 30, fontFamily: 'OpenSans_700Bold', color: '#111', marginBottom: 8, textAlign: 'center' },
+  subtitle: { fontSize: 16, color: '#191716', textAlign: 'center', marginBottom: 28, lineHeight: 20 },
   otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginBottom: 12 },
   otpInput: {
     width: 56,
@@ -248,9 +247,9 @@ const styles = StyleSheet.create({
   },
   otpFilled: { borderColor: '#F57C00', backgroundColor: '#FFF9F0' },
   otpLocked: { backgroundColor: '#F5F5F5', color: '#999' as any },
-  hint: { fontSize: 13, color: '#666', textAlign: 'center', marginBottom: 8 },
+  hint: { fontSize: 12, color: '#666', textAlign: 'center', marginBottom: 10, marginTop: 10, fontFamily: 'OpenSans_600SemiBold' },
   resendWrap: { alignItems: 'center', marginBottom: 20 },
-  resendText: { color: '#F57C00', fontFamily: 'OpenSans_600SemiBold',},
+  resendText: { color: '#F57C00', fontFamily: 'OpenSans_600SemiBold', fontSize: 12 },
   resendDisabled: { color: '#999' },
   footer: { paddingHorizontal: 20, paddingBottom: 24 },
   verifyButton: {
@@ -259,7 +258,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  verifyDisabled: { backgroundColor: '#E0A06A' },
+  verifyDisabled: { backgroundColor: '#E0E0E0' },
   verifyText: { color: '#fff', fontFamily: 'OpenSans_700Bold', fontSize: 16 },
   verifyTextDisabled: { color: '#fff' },
 });

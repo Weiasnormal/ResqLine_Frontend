@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center' },
   illustrationWrap: { marginBottom: 28, width: 140, height: 140, alignItems: 'center', justifyContent: 'center' },
   checkImage: { width: 140, height: 140, borderRadius: 70 },
-  title: { fontSize: 24, fontFamily: 'OpenSans_700Bold', color: '#111', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 48, paddingHorizontal: 12 },
+  title: { fontSize: 30, fontFamily: 'OpenSans_700Bold', color: '#191716', marginBottom: 8, textAlign: 'center' },
+  subtitle: { fontSize: 16, color: '#191716', textAlign: 'center', marginBottom: 48, paddingHorizontal: 12 },
   continueButton: {
     position: 'absolute',
     left: 20,

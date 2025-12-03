@@ -67,7 +67,7 @@ const SignUpBasicInfo: React.FC = () => {
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <Ionicons name="chevron-back" size={24} color="#191716" />
-            </TouchableOpacity>           
+            </TouchableOpacity>
             <View style={styles.headerSpacer} />
           </View>
 
@@ -80,7 +80,7 @@ const SignUpBasicInfo: React.FC = () => {
                 <Text style={styles.flag}>🇵🇭</Text>
                 <Text style={styles.countryCode}>+ 63</Text>
               </View>
-              
+
               <InlineTextField
                 label="Phone number"
                 value={phoneNumber}
@@ -94,8 +94,6 @@ const SignUpBasicInfo: React.FC = () => {
                 assistiveText={phoneTouched && !isPhoneValid ? 'Phone number must be 11 digits' : ''}
               />
             </View>
-
-            
 
             <View style={styles.nameRow}>
               <InlineTextField
@@ -151,8 +149,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    
+    paddingTop: 18,
+    paddingBottom: 12,
+    justifyContent: 'flex-start',
   },
   header: {
     flexDirection: 'row',
@@ -163,12 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   backButton: { padding: 4 },
-  headerTitle: {
-    fontSize: 14,
-    color: '#666',
-    fontFamily: 'OpenSans_400Regular',
-  },
-  headerSpacer: { width: 32},
+  headerSpacer: { width: 32 },
   title: {
     fontSize: 30,
     fontFamily: 'OpenSans_700Bold',
@@ -177,12 +171,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#191716',
-    marginBottom: 30,
+    marginBottom: 18,
   },
   phoneContainer: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 6,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   countryCodeBox: {
     flexDirection: 'row',
@@ -191,7 +185,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 14,
-    gap: 8,
+    marginRight: 10,
     borderWidth: 1,
     borderColor: '#cce5ff',
   },
@@ -207,49 +201,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  phoneInput: {
-    fontSize: 14,
-    color: '#333',
-    paddingVertical: 6,
-  },
-  phoneError: {
-    color: '#FF3E48',
-    fontSize: 13,
-    marginTop: 6,
-    marginBottom: 12,
-    textAlign: 'left',
-  },
   nameRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 30,
+    marginBottom: 22,
     marginTop: 20,
   },
   inputWrapper: {
     flex: 1,
     justifyContent: 'center',
   },
-  input: {
-    fontSize: 14,
-    color: '#333',
-    paddingVertical: 6,
-  },
-  focusedInput: {
-    borderColor: '#FF9427',
-    backgroundColor: '#fff',
-  },
-  floatingLabel: {
-    fontSize: 12,
-    color: '#FF9427',
-    fontFamily: 'OpenSans_600SemiBold',
-    marginBottom: 4,
-  },
   termsText: {
     fontSize: 13,
     color: '#666',
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 20,
+    marginBottom: 18,
   },
   termsLink: {
     color: '#FF9427',
