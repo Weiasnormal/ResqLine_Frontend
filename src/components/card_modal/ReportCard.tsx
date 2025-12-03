@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   reportTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     flex: 1,
     marginRight: 8,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   reportStatus: {
     fontSize: 10,
     color: '#2E7D32',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     textAlign: 'center',
   },
   submittedStatusContainer: {
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   reportType: {
     fontSize: 12,
     color: '#FF8C42',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     marginLeft: 4,
   },
   reportLocationContainer: {
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   viewDetailsText: {
     fontSize: 16,
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
 });
 

@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: 'OpenSans_700Bold',
     color: '#000',
     marginRight: 8,
     letterSpacing: 1,
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   sosButtonText: {
     fontSize: 32,
-    fontWeight: '900',
+    fontFamily: 'OpenSans_400Regular',
     color: '#fff',
     letterSpacing: 2,
   },
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   },
   callTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     marginBottom: 8,
   },
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   sliderText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000000ff',
     marginRight: 8,
     position: 'absolute',

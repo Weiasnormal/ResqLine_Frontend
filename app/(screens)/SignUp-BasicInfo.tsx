@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 14,
     color: '#666',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   headerSpacer: { width: 32 },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: 'OpenSans_700Bold',
     color: '#333',
     marginBottom: 10,
   },
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   countryCode: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
   },
   phoneInputWrapper: {
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   floatingLabel: {
     fontSize: 12,
     color: '#FF9427',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     marginBottom: 4,
   },
   termsText: {
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   termsLink: {
     color: '#FF9427',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   footer: { paddingHorizontal: 20, paddingBottom: 24 },
   continueButton: {
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   continueButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
 });
 

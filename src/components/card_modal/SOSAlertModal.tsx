@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: 'OpenSans_700Bold',
     color: '#fff',
     marginBottom: 4,
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   doneButtonText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   photoSection: {
     marginBottom: 5,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
     marginBottom: 10,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   photoButton: {
     width: 85,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     color: '#FF4444',
     marginTop: 4,
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
     textAlign: 'center',
   },
   photosList: {
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   sendButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'OpenSans_700Bold',
     letterSpacing: 0.5,
   },
   skipButton: {
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   skipButtonText: {
     color: '#888',
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     textDecorationLine: 'underline',
   },
 });

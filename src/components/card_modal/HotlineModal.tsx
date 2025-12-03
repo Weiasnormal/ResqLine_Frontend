@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
     textAlign: 'center',
   },

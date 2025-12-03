@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
   },
   headerSpacer: {
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     fontSize: 32,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     marginBottom: 20,
     lineHeight: 36,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   countryCode: {
     fontSize: 16,
     color: '#000',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   phoneInputWrapper: {
     flex: 1,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   changeButtonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'OpenSans_700Bold',
   },
   overlay: {
     position: 'absolute',

@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   actionBoxTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
     marginTop: 8,
   },
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     marginBottom: 4,
   },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: 14,
     color: '#FF8C42',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   categoriesContainer: {
     flex: 1,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
     marginBottom: 4,
   },
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   seeAllButtonText: {
     fontSize: 16,
     color: '#FF8C42',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   reportsScrollView: {
     marginHorizontal: -16,
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
     marginTop: 12,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
     lineHeight: 16,
   },
   categoryIcon: {

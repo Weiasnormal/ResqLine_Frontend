@@ -14,6 +14,7 @@ import RecentReportScreen from '../(screens)/RecentReportScreen';
 import { useLocalSearchParams } from 'expo-router';
 
 import { useFonts, OpenSans_400Regular, OpenSans_600SemiBold, OpenSans_700Bold } from '@expo-google-fonts/open-sans';
+import { UserProfileProvider } from '../../src/contexts/UserProfileContext';
 
 // Cast imported screen modules to a React component type that accepts any props
 const Welcome = WelcomeScreen as React.ComponentType<any>;
@@ -110,11 +111,9 @@ const AppWithFonts: React.FC = () => {
   useEffect(() => {
     if (!fontsLoaded) return;
 
-    // Ensure defaultProps exist
     if ((Text as any).defaultProps == null) (Text as any).defaultProps = {};
     if ((TextInput as any).defaultProps == null) (TextInput as any).defaultProps = {};
 
-    // Set default fontFamily if not already set
     const defaultFontFamily = 'OpenSans_400Regular';
     const textDefault = (Text as any).defaultProps.style;
     (Text as any).defaultProps.style = Array.isArray(textDefault) ? [{ fontFamily: defaultFontFamily }, ...textDefault] : [{ fontFamily: defaultFontFamily }, textDefault];
@@ -125,7 +124,12 @@ const AppWithFonts: React.FC = () => {
 
   if (!fontsLoaded) return null;
 
-  return <TabsLayout />;
+  // Wrap TabsLayout with UserProfileProvider so useUserProfile() works
+  return (
+    <UserProfileProvider>
+      <TabsLayout />
+    </UserProfileProvider>
+  );
 };
 
 export default AppWithFonts;

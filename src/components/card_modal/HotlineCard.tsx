@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   },
   departmentName: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#1A1A1A',
     marginBottom: 8,
   },
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   directionText: {
     fontSize: 14,
     color: '#FF8C42',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
     marginLeft: 4,
   },
   address: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   contactNumber: {
     fontSize: 16,
-    fontWeight: '400',
+    fontFamily: 'OpenSans_400Regular',
     color: '#1A1A1A',
     flex: 1,
   },

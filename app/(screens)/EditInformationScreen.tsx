@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
   },
   headerSpacer: {
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     marginBottom: 8,
-    fontWeight: '400',
+    fontFamily: 'OpenSans_400Regular',
   },
   nameInput: {
     borderWidth: 1,
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'OpenSans_700Bold',
   },
   phoneNumberContainer: {
     flexDirection: 'row',

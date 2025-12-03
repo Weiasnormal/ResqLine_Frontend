@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  title: { fontSize: 20, fontWeight: '800', marginBottom: 12, textAlign: 'center' },
+  title: { fontSize: 20, fontFamily: 'OpenSans_400Regular', marginBottom: 12, textAlign: 'center' },
   message: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
   deleteButton: {
     width: '100%',
@@ -56,13 +56,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  deleteButtonText: { color: '#fff', fontWeight: '700' },
+  deleteButtonText: { color: '#fff', fontFamily: 'OpenSans_700Bold',},
   cancelButton: {
     paddingVertical: 8,
   },
   cancelText: {
     color: '#666',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
 });
 

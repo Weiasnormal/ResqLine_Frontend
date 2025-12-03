@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
     marginRight: 8,
   },
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
     marginBottom: 4,
   },

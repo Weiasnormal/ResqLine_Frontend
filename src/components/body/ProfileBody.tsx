@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: 'OpenSans_400Regular',
     color: '#FFF',
     marginBottom: 4,
   },
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
     marginBottom: 15,
   },
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   logOutButtonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
     color: '#333',
   },
   deleteAccountButton: {
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   deleteAccountButtonText: {
     fontSize: 16,
     color: '#FF4444',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
 });
 

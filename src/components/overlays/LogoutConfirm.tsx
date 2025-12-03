@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  title: { fontSize: 20, fontWeight: '800', marginBottom: 8 },
+  title: { fontSize: 20, fontFamily: 'OpenSans_400Regular', marginBottom: 8 },
   message: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
   logoutButton: {
     width: '100%',
@@ -64,13 +64,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  logoutButtonText: { color: '#fff', fontWeight: '700' },
+  logoutButtonText: { color: '#fff', fontFamily: 'OpenSans_700Bold',},
   cancelButton: {
     paddingVertical: 8,
   },
   cancelText: {
     color: '#666',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
 });
 

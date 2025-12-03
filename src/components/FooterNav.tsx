@@ -86,16 +86,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     marginTop: 4,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   activeTabLabel: {
     color: '#FF8C00',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     
   },
   sosLabel: {
     color: '#FF4444',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   activeIndicator: {
     position: 'absolute',

@@ -101,10 +101,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   backWrap: { padding: 4 },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: '#111', textAlign: 'center', flex: 1 },
+  headerTitle: { fontSize: 18, fontFamily: 'OpenSans_600SemiBold', color: '#111', textAlign: 'center', flex: 1 },
   container: { flex: 1 },
   content: { padding: 20, flex: 1 },
-  title: { fontSize: 20, fontWeight: '700', marginBottom: 12 },
+  title: { fontSize: 20, fontFamily: 'OpenSans_700Bold', marginBottom: 12 },
   description: { fontSize: 14, color: '#666', marginBottom: 12, lineHeight: 20 },
   instruction: { fontSize: 13, color: '#666', marginBottom: 12 },
 
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     top: -8,
     fontSize: 12,
     color: '#FF9427',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   input: {
     height: 40,
@@ -157,11 +157,11 @@ const styles = StyleSheet.create({
   deleteButtonDisabled: {
     backgroundColor: '#F1B6B6',
   },
-  deleteText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  deleteText: { color: '#fff', fontFamily: 'OpenSans_700Bold', fontSize: 16 },
   deleteTextDisabled: { color: '#fff' },
 
   cancelButton: { alignItems: 'center', paddingVertical: 8 },
-  cancelText: { color: '#666', fontWeight: '600' },
+  cancelText: { color: '#666', fontFamily: 'OpenSans_600SemiBold',},
 });
 
 export default AccountDeletion;

@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
   },
   headerSpacer: {
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     fontSize:32,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     marginBottom: 16,
     textAlign: 'center',
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     borderColor: '#1f1e1eff',
     borderRadius: 12,
     fontSize: 24,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     backgroundColor: '#fff',
   },
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   resendButtonText: {
     fontSize: 16,
     color: '#F57C00',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   resendButtonTextDisabled: {
     color: '#999',
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   verifyButtonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'OpenSans_700Bold',
   },
   verifyButtonTextDisabled: {
     color: '#999',

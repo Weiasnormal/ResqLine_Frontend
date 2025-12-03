@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     textAlign: 'center',
   },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   activeFilterText: {
     color: '#fff',

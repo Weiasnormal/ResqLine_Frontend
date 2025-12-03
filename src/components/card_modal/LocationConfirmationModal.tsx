@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#333',
     textAlign: 'center',
     marginBottom: 8,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#FF6B6B',
     marginTop: 12,
     marginBottom: 8,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
     color: '#333',
     textAlign: 'center',
     marginBottom: 16,
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#fff',
   },
   refreshButton: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
   refreshButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#fff',
   },
   cancelButton: {
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
     color: '#666',
   },
 });

@@ -230,9 +230,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   backWrap: { padding: 4 },
-  headerTitle: { fontSize: 14, fontWeight: '600', color: '#444' },
+  headerTitle: { fontSize: 14, fontFamily: 'OpenSans_600SemiBold', color: '#444' },
   body: { paddingHorizontal: 20, paddingTop: 20, alignItems: 'center' },
-  title: { fontSize: 28, fontWeight: '700', color: '#111', marginBottom: 8, textAlign: 'center' },
+  title: { fontSize: 28, fontFamily: 'OpenSans_700Bold', color: '#111', marginBottom: 8, textAlign: 'center' },
   subtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 28, lineHeight: 20 },
   otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginBottom: 12 },
   otpInput: {
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D0D6D6',
     fontSize: 22,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     backgroundColor: '#fff',
     color: '#111',
   },
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   otpLocked: { backgroundColor: '#F5F5F5', color: '#999' as any },
   hint: { fontSize: 13, color: '#666', textAlign: 'center', marginBottom: 8 },
   resendWrap: { alignItems: 'center', marginBottom: 20 },
-  resendText: { color: '#F57C00', fontWeight: '600' },
+  resendText: { color: '#F57C00', fontFamily: 'OpenSans_600SemiBold',},
   resendDisabled: { color: '#999' },
   footer: { paddingHorizontal: 20, paddingBottom: 24 },
   verifyButton: {
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   verifyDisabled: { backgroundColor: '#E0A06A' },
-  verifyText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  verifyText: { color: '#fff', fontFamily: 'OpenSans_700Bold', fontSize: 16 },
   verifyTextDisabled: { color: '#fff' },
 });
 

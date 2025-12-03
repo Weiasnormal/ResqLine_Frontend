@@ -71,7 +71,7 @@ const IntroScreen: React.FC = () => {
       {/* Stage 2: White Background with Colored Logo and Text - always rendered but behind stage1 initially */}
       <View style={styles.stage2Container}>
         <View style={styles.logoContainer}>
-          <Logo width={200} height={200} />
+          <Logo width={250} height={250} />
         </View>
         
         <View style={styles.textContainer}>
@@ -122,16 +122,14 @@ const styles = StyleSheet.create({
 
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 20,
   },
   textContainer: {
     alignItems: 'center',
   },
   appName: {
     fontSize: 30,
-    fontWeight: '700',
+    fontFamily: 'OpenSans_700Bold',
     color: '#191716',
-    fontFamily: 'WorkSans', 
   },
 });
 

@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   backButton: { padding: 4 },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
+  headerTitle: { fontSize: 18, fontFamily: 'OpenSans_600SemiBold', color: '#000' },
   headerSpacer: { width: 32 },
   headerDivider: { height: 1, backgroundColor: '#E5E5E5' },
   scrollView: { flex: 1 },
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   flagEmoji: { fontSize: 16, marginRight: 6 },
-  countryCode: { fontSize: 16, color: '#000', fontWeight: '500' },
+  countryCode: { fontSize: 16, color: '#000', fontFamily: 'OpenSans_400Regular',},
   phoneInputWrapper: { flex: 1 },
   phoneInput: {
     borderWidth: 1,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   continueButtonDisabled: { backgroundColor: '#E0E0E0' },
-  continueText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  continueText: { color: '#fff', fontSize: 18, fontFamily: 'OpenSans_700Bold',},
   overlay: {
     position: 'absolute',
     top: 0,

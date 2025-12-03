@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     color: '#000',
     marginRight: 8,
   },
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
     marginBottom: 10,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   photoButton: {
     width: 100,
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 10,
     textAlign: 'center',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   photoContainer: {
     flexDirection: 'row',
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   },
   dropdownItemTextSelected: {
     color: '#FF4444',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   pickerError: {
     borderColor: '#FFB3B3',
@@ -600,12 +600,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     marginBottom: 6,
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   required: {
     color: '#FC8100',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'OpenSans_700Bold',
   },
   inputError: {
     borderColor: '#FFB3B3',
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   reportButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
     textAlign: 'center',
   },
   reportButtonTextDisabled: {
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: '#FC8100',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   locationHeader: {
     flexDirection: 'row',
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 12,
     color: '#FF8C00',
-    fontWeight: '600',
+    fontFamily: 'OpenSans_600SemiBold',
   },
   locationErrorContainer: {
     flexDirection: 'row',
@@ -696,7 +696,7 @@ const styles = StyleSheet.create({
   readOnlyInput: {
     backgroundColor: '#F8F9FA',
     color: '#333',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
   loadingOverlay: {
     position: 'absolute',
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: '#FF8C00',
-    fontWeight: '500',
+    fontFamily: 'OpenSans_400Regular',
   },
 });
 
