@@ -15,6 +15,7 @@ import { useUserProfile } from '../../contexts/UserProfileContext';
 import Profilebg from '../../../assets/Profilebg.svg';
 import Profile from '../../../assets/Profile.svg';
 import LogoutConfirm from '../overlays/LogoutConfirm';
+import DeleteConfirm from '../overlays/DeleteConfirm';
 import { useRouter } from 'expo-router';
 
 interface ProfileBodyProps {
@@ -29,6 +30,7 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const router = useRouter();
 
   useFocusEffect(
@@ -66,31 +68,30 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
   const handleLogOut = () => {
     setShowLogoutConfirm(true);
   };
-  const handleDeleteAccount = () => {};
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(true);
+  };
   const handleCancelLogout = () => {
     setShowLogoutConfirm(false);
   };
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+  };
 
   const formatPhoneNumber = (phoneNumber: string) => {
-    
     const digits = phoneNumber.replace(/\D/g, '');
-    
     let cleanNumber = digits;
     if (digits.startsWith('63')) {
-      cleanNumber = digits.slice(2); 
+      cleanNumber = digits.slice(2);
     } else if (digits.startsWith('0')) {
-      cleanNumber = digits.slice(1); 
+      cleanNumber = digits.slice(1);
     }
-    
-    // Format as +63 xxx xxx xxxx
     if (cleanNumber.length >= 10) {
       const part1 = cleanNumber.slice(0, 3);
       const part2 = cleanNumber.slice(3, 6);
       const part3 = cleanNumber.slice(6, 10);
       return `+63 ${part1} ${part2} ${part3}`;
     }
-    
-    // Fallback for incomplete numbers
     return `+63 ${cleanNumber}`;
   };
 
@@ -104,10 +105,9 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
     if (userLocation?.latitude && userLocation?.longitude) {
       return `${userLocation.latitude.toFixed(6)}, ${userLocation.longitude.toFixed(6)}`;
     }
-    return 'Secret Location'; 
+    return 'Secret Location';
   };
 
-  // changed: accept disabled flag and style/disable accordingly
   const renderSectionItem = (
     title: string,
     iconName: keyof typeof Ionicons.glyphMap,
@@ -115,7 +115,7 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
     showDivider: boolean = true,
     disabled: boolean = false
   ) => {
-    const disabledColor = '#a4a3a7ff';
+    const disabledColor = '#C7C5CD';
     const iconColor = disabled ? disabledColor : '#666';
     const textColor = disabled ? disabledColor : '#333';
     const chevronColor = disabled ? disabledColor : '#000000ff';
@@ -143,25 +143,21 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
       {/* Scrollable Profile Header */}
       <View style={styles.profileHeader}>
         <View style={styles.headerBackground}>
-          <Profilebg 
-            width="100%" 
-            height={180} 
-            preserveAspectRatio="xMidYMid slice" 
-          />
+          <Profilebg width="100%" height={180} preserveAspectRatio="xMidYMid slice" />
         </View>
-        
+
         <View style={styles.profileOverlay}>
           <View style={styles.profileRow}>
             <View style={styles.avatarContainer}>
               <Profile width={75} height={75} />
             </View>
-            
+
             <View style={styles.userInfoContainer}>
               <Text style={styles.userName}>{getFullName()}</Text>
               <Text style={styles.userPhone}>{formatPhoneNumber(profile.phoneNumber || '')}</Text>
               <Text style={styles.userLocation}>{getUserLocationText()}</Text>
             </View>
-            
+
             <TouchableOpacity style={styles.chevronContainer} onPress={onEditInformation}>
               <Ionicons name="chevron-forward" size={20} color="#FFF" />
             </TouchableOpacity>
@@ -209,6 +205,7 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
           <Text style={styles.deleteAccountButtonText}>Delete Account</Text>
         </TouchableOpacity>
       </View>
+
       {/* Logout confirmation overlay */}
       <LogoutConfirm
         visible={showLogoutConfirm}
@@ -217,6 +214,17 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
           // optional: clear local profile/auth state here before redirect
           setShowLogoutConfirm(false);
           router.replace('(screens)/WelcomeScreen');
+        }}
+      />
+
+      {/* Delete confirmation overlay */}
+      <DeleteConfirm
+        visible={showDeleteConfirm}
+        onCancel={handleCancelDelete}
+        onDelete={() => {
+          // hide overlay then navigate to AccountDeletion screen
+          setShowDeleteConfirm(false);
+          router.push('(screens)/AccountDeletion');
         }}
       />
     </ScrollView>
