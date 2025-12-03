@@ -1,67 +1,70 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { UserProfileProvider } from '../../src/contexts/UserProfileContext';
+import { useRouter } from 'expo-router';
 
 const WelcomeScreen = ({ navigation }: any) => {
+  const router = useRouter();
+  const hasNavProp = navigation && typeof navigation.navigate === 'function';
+
   return (
-    <UserProfileProvider>
-      <LinearGradient colors={['#FF9427', '#F57C00']} style={styles.container}>
-        <View style={styles.content}>
-          {/* Logo */}
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('../../assets/White-Logo.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.logo}>ResqLine</Text>
-          </View>
-
-          {/* Illustration Placeholder */}
-          <View style={styles.illustrationContainer}>
-            <Image
-              source={require('../../assets/Welcome-Illustration.png')}
-              style={styles.illustration}
-              resizeMode="contain"
-            />
-
-            {/* Tagline */}
-            <Text style={styles.tagline}>
-              Stay Alert. Stay Connected. Stay Safe.
-            </Text>
-          </View>
-
-          {/* White Section */}
-          <View style={styles.whiteSection}>
-            
-            {/* Sign Up Button */}
-            <TouchableOpacity
-              style={styles.signUpButton}
-              onPress={() => navigation.navigate('SignUp-BasicInfo')}
-            >
-              <Text style={styles.signUpText}>Sign up</Text>
-            </TouchableOpacity>
-
-            {/* Log In Button */}
-            <TouchableOpacity
-              style={styles.logInButton}
-              onPress={() => navigation.navigate('(screens)/VerifyNumberScreen')}
-            >
-              <Text style={styles.logInText}>Log In</Text>
-            </TouchableOpacity>
-
-            {/* Continue as Guest Button */}
-            <TouchableOpacity
-              style={styles.guestButton}
-              onPress={() => navigation.navigate('(tabs)')}
-            >
-              <Text style={styles.guestText}>Continue as Guest</Text>
-            </TouchableOpacity>
-          </View>
+    <LinearGradient colors={['#FF9427', '#F57C00']} style={styles.container}>
+      <View style={styles.content}>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/White-Logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.logo}>ResqLine</Text>
         </View>
-      </LinearGradient>
-    </UserProfileProvider>
+
+        {/* Illustration Placeholder */}
+        <View style={styles.illustrationContainer}>
+          <Image
+            source={require('../../assets/Welcome-Illustration.png')}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+
+          {/* Tagline */}
+          <Text style={styles.tagline}>
+            Stay Alert. Stay Connected. Stay Safe.
+          </Text>
+        </View>
+
+        {/* White Section */}
+        <View style={styles.whiteSection}>
+          
+          {/* Sign Up Button */}
+          <TouchableOpacity
+            style={styles.signUpButton}
+            onPress={() =>
+              hasNavProp ? navigation.navigate('SignUp-BasicInfo') : router.push('(screens)/SignUp-BasicInfo')
+            }
+          >
+            <Text style={styles.signUpText}>Sign up</Text>
+          </TouchableOpacity>
+
+          {/* Log In Button */}
+          <TouchableOpacity
+            style={styles.logInButton}
+            onPress={() => router.push('(screens)/LogIn-Number')}
+          >
+            <Text style={styles.logInText}>Log In</Text>
+          </TouchableOpacity>
+
+          {/* Continue as Guest Button */}
+          <TouchableOpacity
+            style={styles.guestButton}
+            onPress={() => (hasNavProp ? navigation.navigate('home') : router.push('(tabs)'))}
+          >
+            <Text style={styles.guestText}>Continue as Guest</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </LinearGradient>
   );
 };
 
