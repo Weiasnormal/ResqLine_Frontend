@@ -12,9 +12,13 @@ import ChangeNumberScreen from '../(screens)/ChangeNumberScreen';
 import RecentReportScreen from '../(screens)/RecentReportScreen';
 import SignUpBasicInfo from '../(screens)/SignUp-BasicInfo';
 import SignUpVerification from '../(screens)/SignUp-Verification';
+import { useLocalSearchParams } from 'expo-router';
 
 const TabsLayout = () => {
-  const [activeTab, setActiveTab] = useState('welcome');
+  const { tab } = useLocalSearchParams();
+  // Preserve existing default 'welcome' unless ?tab= is provided
+  const initialTab = Array.isArray(tab) ? tab[0] ?? 'welcome' : tab ?? 'welcome';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingNumberFromProfile, setIsChangingNumberFromProfile] = useState(false);
   const [isViewingRecentReports, setIsViewingRecentReports] = useState(false);

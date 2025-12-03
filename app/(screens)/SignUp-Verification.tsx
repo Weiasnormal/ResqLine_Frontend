@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSlideIn } from '../../src/transitions/slideIn';
 import { useUserProfile } from '../../src/contexts/UserProfileContext';
+import { useRouter } from 'expo-router';
 
 interface Props {
   navigation?: any;
@@ -30,6 +31,7 @@ interface Props {
 const SignUpVerification: React.FC<Props> = ({ navigation, route, onBack, onSuccess }) => {
   const phoneNumber = route?.params?.phoneNumber ?? '';
   const { updateProfile } = useUserProfile();
+  const router = useRouter();
 
   const [digits, setDigits] = useState(['', '', '', '']);
   const [timer, setTimer] = useState(15);
@@ -120,17 +122,10 @@ const SignUpVerification: React.FC<Props> = ({ navigation, route, onBack, onSucc
         return;
       }
 
-      // success path: update minimal profile and navigate into app
+      // success path: update minimal profile and navigate to Account Created screen (no confirmation overlay)
       updateProfile({ phoneNumber });
-      Alert.alert('Verified', 'Your account has been verified.', [
-        {
-          text: 'OK',
-          onPress: () => {
-            if (onSuccess) onSuccess();
-            else if (navigation) navigation.navigate('(tabs)');
-          },
-        },
-      ]);
+      if (onSuccess) onSuccess();
+      else router.push('(screens)/SignUp-AccountCreated');
     } catch (err) {
       Alert.alert('Error', 'Verification failed. Try again.');
     }
@@ -151,7 +146,7 @@ const SignUpVerification: React.FC<Props> = ({ navigation, route, onBack, onSucc
 
   const handleBack = () => {
     if (onBack) onBack();
-    else if (navigation) navigation.navigate('(screens)/WelcomeScreen');
+    else router.push('(screens)/WelcomeScreen');
   };
 
   const isDisabled = code.length !== 4 || isLocked;
