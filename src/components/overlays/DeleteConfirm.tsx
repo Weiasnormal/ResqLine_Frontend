@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  title: { fontSize: 20, fontFamily: 'OpenSans_400Regular', marginBottom: 12, textAlign: 'center' },
+  title: { fontSize: 20, fontFamily: 'OpenSans_700Bold', marginBottom: 12, textAlign: 'center' },
   message: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
   deleteButton: {
     width: '100%',

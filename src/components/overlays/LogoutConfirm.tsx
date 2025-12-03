@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  title: { fontSize: 20, fontFamily: 'OpenSans_400Regular', marginBottom: 8 },
+  title: { fontSize: 20, fontFamily: 'OpenSans_700Bold', marginBottom: 8 },
   message: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
   logoutButton: {
     width: '100%',

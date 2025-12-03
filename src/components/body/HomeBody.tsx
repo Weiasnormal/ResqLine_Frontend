@@ -267,7 +267,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
                 onPress={() => handleSafetyTipPress(tip)}
                 activeOpacity={0.8}
               >
-                <MaterialIcons name={tip.icon as any} size={32} color="#000000ff" />
+                <MaterialIcons name={tip.icon as any} size={32} color="#191716" />
                 <Text style={styles.safetyTipText}>{tip.title}</Text>
               </TouchableOpacity>
             </Animated.View>
@@ -330,14 +330,14 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   sectionTitle: {
-    fontSize: 22,
-    fontFamily: 'OpenSans_600SemiBold',
-    color: '#000',
+    fontSize: 20,
+    fontFamily: 'OpenSans_700Bold',
+    color: '#191716',
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#191716',
     marginBottom: 20,
   },
   sectionHeader: {
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   seeAllButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#FF8C42',
     fontFamily: 'OpenSans_600SemiBold',
   },
@@ -414,6 +414,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginTop: 20,
   },
   safetyTipWrapper: {
     width: '48%',
@@ -427,7 +428,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    shadowColor: '#000',
+    shadowColor: '#000000ff',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,

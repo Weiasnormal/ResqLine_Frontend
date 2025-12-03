@@ -354,14 +354,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderWidth: 1,
     borderColor: '#333',
-    borderRadius: 8,
+    borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
     marginBottom: 15,
   },
   logOutButtonText: {
-    fontSize: 16,
-    fontFamily: 'OpenSans_400Regular',
+    fontSize: 14,
+    fontFamily: 'OpenSans_700Bold',
     color: '#333',
   },
   deleteAccountButton: {
@@ -369,9 +369,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   deleteAccountButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#FF4444',
-    fontFamily: 'OpenSans_400Regular',
+    fontFamily: 'OpenSans_700Bold',
   },
 });
 
