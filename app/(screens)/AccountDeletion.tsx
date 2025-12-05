@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import InlineTextField from '../../src/components/inputs/InlineTextField';
+import InlineTextField from '../components/inputs/InlineTextField';
 
 const AccountDeletion: React.FC = () => {
   const router = useRouter();

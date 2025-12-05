@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useSlideIn } from '../transitions/slideIn';
 import ProfileEdit from '../../assets/ProfileEdit.svg';
-import ChangeNumberScreen from './ChangeNumberScreen';
+import ChangeNumberScreen from '../(screens)/ChangeNumberScreen';
 
 interface EditInformationScreenProps {
   onBack: () => void;

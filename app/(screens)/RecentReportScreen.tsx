@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useSlideIn } from '../../src/transitions/slideIn';
-import ReportCard, { Report } from '../../src/components/card_modal/ReportCard';
+import { useSlideIn } from '../transitions/slideIn';
+import ReportCard, { Report } from '../components/card_modal/ReportCard';
 import { router } from 'expo-router';
-import { getAllRecentReports, getFilteredRecentReports } from '../../src/data/recentReportsData';
+import { getAllRecentReports, getFilteredRecentReports } from '../data/recentReportsData';
 
 interface RecentReportScreenProps {
   onBack: () => void;

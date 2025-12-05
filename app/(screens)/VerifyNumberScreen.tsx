@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useSlideIn } from '../../src/transitions/slideIn';
-import { useUserProfile } from '../../src/contexts/UserProfileContext';
+import { useSlideIn } from '../transitions/slideIn';
+import { useUserProfile } from '../contexts/UserProfileContext';
 
 interface VerifyNumberScreenProps {
   onBack: () => void;
@@ -48,7 +48,7 @@ const VerifyNumberScreen: React.FC<VerifyNumberScreenProps> = ({ onBack, phoneNu
 
   // Timer logic for resend code
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     
     if (isTimerActive && resendTimer > 0) {
       interval = setInterval(() => {

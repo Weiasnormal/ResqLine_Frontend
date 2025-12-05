@@ -15,7 +15,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useSlideIn } from '../transitions/slideIn';
-import VerifyNumberScreen from './VerifyNumberScreen';
+import VerifyNumberScreen from '../(screens)/VerifyNumberScreen';
 import InlineTextField from '../components/inputs/InlineTextField';
 
 interface ChangeNumberScreenProps {

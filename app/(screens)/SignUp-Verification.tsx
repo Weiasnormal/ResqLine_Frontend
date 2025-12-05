@@ -13,8 +13,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useSlideIn } from '../../src/transitions/slideIn';
-import { useUserProfile } from '../../src/contexts/UserProfileContext';
+import { useSlideIn } from '../transitions/slideIn';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 interface Props {

@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useSlideIn } from '../../src/transitions/slideIn';
+import { useSlideIn } from '../transitions/slideIn';
 import { useRouter } from 'expo-router';
-import InlineTextField from '../../src/components/inputs/InlineTextField';
+import InlineTextField from '../components/inputs/InlineTextField';
 
 const SignUpBasicInfo: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
