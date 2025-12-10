@@ -10,6 +10,8 @@ import {
   Platform,
   ScrollView,
   Animated,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +19,10 @@ import { useUserProfile } from '../_contexts/UserProfileContext';
 import { useSlideIn } from '../_transitions/slideIn';
 import ProfileEdit from '../../assets/ProfileEdit.svg';
 import ChangeNumberScreen from './ChangeNumberScreen';
+
+// Import API hooks
+import { useUpdateUserInformation } from '../_hooks/useApi';
+import { formatApiError } from '../_utils/apiHelpers';
 
 interface EditInformationScreenProps {
   onBack: () => void;
@@ -32,6 +38,9 @@ const EditInformationScreen: React.FC<EditInformationScreenProps> = ({ onBack })
   const [phoneNumber, setPhoneNumber] = useState<string>(profile.phoneNumber ?? '');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [showChangeNumber, setShowChangeNumber] = useState(false);
+
+  // API hooks
+  const updateUserInfoMutation = useUpdateUserInformation();
   
  
   const slideAnimation = useSlideIn({ 
@@ -66,13 +75,33 @@ const EditInformationScreen: React.FC<EditInformationScreenProps> = ({ onBack })
     const ln = (lastName ?? '').trim();
     const un = (username ?? '').trim();
 
-    try {
-      await updateProfile({ firstName: fn, lastName: ln, username: un });
-    } catch (err) {
-      console.warn('Failed to update profile:', err);
+    if (!fn || !ln) {
+      Alert.alert('Validation Error', 'First name and last name are required.');
+      return;
     }
 
-    handleBack();
+    try {
+      // Call API to update user information
+      const result = await updateUserInfoMutation.mutateAsync({
+        firstName: fn,
+        lastName: ln,
+        username: un,
+      });
+
+      if (result.success) {
+        // Update local profile context
+        await updateProfile({ firstName: fn, lastName: ln, username: un });
+        
+        Alert.alert(
+          'Profile Updated',
+          'Your information has been updated successfully.',
+          [{ text: 'OK', onPress: handleBack }]
+        );
+      }
+    } catch (error: any) {
+      const errorMessage = formatApiError(error.message || 'Failed to update profile');
+      Alert.alert('Update Failed', errorMessage);
+    }
   };
   
   const handleBack = () => {
@@ -178,8 +207,22 @@ const EditInformationScreen: React.FC<EditInformationScreenProps> = ({ onBack })
               </View>
 
               {/* Save Button */}
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>Save</Text>
+              <TouchableOpacity 
+                style={[
+                  styles.saveButton,
+                  updateUserInfoMutation.isPending && styles.saveButtonDisabled
+                ]} 
+                onPress={handleSave}
+                disabled={updateUserInfoMutation.isPending}
+              >
+                {updateUserInfoMutation.isPending ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text style={[styles.saveButtonText, { marginLeft: 8 }]}>Saving...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.saveButtonText}>Save</Text>
+                )}
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -322,6 +365,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: '#fff',
     zIndex: 1000,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#E0E0E0',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 

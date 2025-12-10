@@ -49,7 +49,7 @@ const IntroScreen: React.FC = () => {
       setTimeout(() => {
         setStage('fadeOut');
         finalFade.fadeOut(() => {
-          router.replace('/(tabs)?tab=welcome');
+          router.replace('/WelcomeScreen');
         });
       }, 3000); // 1s (stage1) + 1.2s (circular transition) + 0.8s (stage2 display) = 3s total
     };

@@ -1,14 +1,20 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import WhiteLogo from '../../assets/White-Logo.svg';
 import WelcomeIllustration from '../../assets/Welcome-Illustration1.svg';
+import { redirectIfAuthenticated } from '../_utils/authGuard';
 
 const WelcomeScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    // Redirect to home if already authenticated
+    redirectIfAuthenticated();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -44,7 +50,7 @@ const WelcomeScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.signUpButton}
             onPress={() => {
-              router.push('(screens)/SignUp-BasicInfo');
+              router.push('/SignUp-BasicInfo');
             }}
           >
             <Text style={styles.signUpText}>Sign Up</Text>
@@ -52,14 +58,14 @@ const WelcomeScreen: React.FC = () => {
 
           <TouchableOpacity
             style={styles.logInButton}
-            onPress={() => router.push('(screens)/LogIn-Number')}
+            onPress={() => router.push('/LogIn-Number')}
           >
             <Text style={styles.logInText}>Log In</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.guestButton}
-            onPress={() => router.push('(tabs)?tab=home')}
+            onPress={() => router.push({ pathname: '/(tabs)', params: { tab: 'home' } })}
           >
             <Text style={styles.guestText}>Continue as Guest</Text>
           </TouchableOpacity>

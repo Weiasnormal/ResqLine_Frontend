@@ -15,7 +15,7 @@ const LogoutConfirm: React.FC<Props> = ({ visible, onCancel, onLogout }) => {
     // call parent handler if provided
     if (onLogout) onLogout();
     // navigate to WelcomeScreen (replace stack)
-    router.replace('(screens)/WelcomeScreen');
+    router.replace('/WelcomeScreen');
   };
 
   return (

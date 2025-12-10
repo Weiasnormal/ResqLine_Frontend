@@ -10,12 +10,17 @@ import {
   Platform,
   Animated,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSlideIn } from '../_transitions/slideIn';
 import { useUserProfile } from '../_contexts/UserProfileContext';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+
+// Import API hooks
+import { useVerifyOtp, useGenerateOtp } from '../_hooks/useApi';
+import { formatApiError, formatPhoneForApi } from '../_utils/apiHelpers';
 
 interface Props {
   onBack?: () => void;
@@ -41,6 +46,13 @@ const SignUpVerification: React.FC<Props> = ({ onBack, onSuccess }) => {
   const inputRefs = useRef<Array<TextInput | null>>([]);
   const slideAnimation = useSlideIn({ direction: 'right', distance: 300, duration: 280 });
 
+  // API hooks
+  const verifyOtpMutation = useVerifyOtp();
+  const generateOtpMutation = useGenerateOtp();
+
+  // Define isLoading before it's used
+  const isLoading = verifyOtpMutation.isPending || generateOtpMutation.isPending;
+
   useEffect(() => {
     slideAnimation.slideIn();
     inputRefs.current[0]?.focus();
@@ -59,10 +71,11 @@ const SignUpVerification: React.FC<Props> = ({ onBack, onSuccess }) => {
   const code = digits.join('');
 
   useEffect(() => {
-    if (code.length === 4) {
-      // optional: auto-verify after short delay
+    if (code.length === 4 && !isLocked && !isLoading) {
+      // Auto-verify when all digits are entered
+      handleVerify(code);
     }
-  }, [code]);
+  }, [code, isLocked, isLoading]);
 
   const handleChange = (value: string, ix: number) => {
     const numeric = value.replace(/[^0-9]/g, '');
@@ -92,58 +105,73 @@ const SignUpVerification: React.FC<Props> = ({ onBack, onSuccess }) => {
   const handleResend = async () => {
     if (isTimerActive) return;
     try {
-      setTimer(60);
-      setIsTimerActive(true);
-      setDigits(['', '', '', '']);
-      inputRefs.current[0]?.focus();
-      await sendVerificationCode(phoneNumber);
-      Alert.alert('Sent', `Verification code resent to ${phoneNumber || 'your number'}.`);
-    } catch (err) {
-      Alert.alert('Error', 'Failed to resend code. Try again.');
+      const formattedPhone = formatPhoneForApi(phoneNumber);
+      
+      const result = await generateOtpMutation.mutateAsync({
+        mobileNumber: formattedPhone,
+      });
+
+      if (result.success) {
+        setTimer(60);
+        setIsTimerActive(true);
+        setAttempts(0);
+        setIsLocked(false);
+        setDigits(['', '', '', '']);
+        inputRefs.current[0]?.focus();
+        
+        Alert.alert('Code Sent', 'A new verification code has been sent to your phone.');
+      }
+    } catch (error: any) {
+      const errorMessage = formatApiError(error.message || 'Failed to resend code');
+      Alert.alert('Resend Failed', errorMessage);
     }
   };
 
-  const handleVerify = async () => {
-    if (isLocked || code.length !== 4) return;
-    setAttempts(a => a + 1);
+  const handleVerify = async (otpCode?: string) => {
+    const codeToVerify = otpCode || code;
+    if (isLocked || codeToVerify.length !== 4) return;
 
     try {
-      const ok = await verifyOtpCode(code, phoneNumber);
-      if (!ok) {
-        if (attempts + 1 >= 5) {
-          setIsLocked(true);
-          Alert.alert('Locked', 'Too many attempts. Please request a new code.');
-        } else {
-          setDigits(['', '', '', '']);
-          inputRefs.current[0]?.focus();
-          Alert.alert('Invalid', `Code is incorrect. ${5 - (attempts + 1)} attempts left.`);
-        }
-        return;
-      }
+      const formattedPhone = formatPhoneForApi(phoneNumber);
+      
+      const result = await verifyOtpMutation.mutateAsync({
+        mobileNumber: formattedPhone,
+        otp: codeToVerify,
+      });
 
-      // success path: navigate to Account Created and pass along the collected info
-      if (onSuccess) onSuccess();
-      else {
-        const path = `(screens)/SignUp-AccountCreated?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}&phoneNumber=${encodeURIComponent(phoneNumber)}`;
-        router.push(path);
+      if (result.success) {
+        // Update user profile with the data
+        await updateProfile({ 
+          phoneNumber: formattedPhone, 
+          firstName, 
+          lastName 
+        });
+
+        // Navigate directly to home - account is created and verified
+        router.replace({ pathname: '/(tabs)', params: { tab: 'home' } });
       }
-    } catch (err) {
-      Alert.alert('Error', 'Verification failed. Try again.');
+    } catch (error: any) {
+      setAttempts(prev => prev + 1);
+      
+      if (attempts >= 4) {
+        setIsLocked(true);
+        Alert.alert(
+          'Too Many Attempts', 
+          'Please wait and request a new verification code.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        const errorMessage = formatApiError(error.message || 'Verification failed');
+        Alert.alert('Verification Failed', errorMessage);
+      }
+      
+      // Clear the digits for retry
+      setDigits(['', '', '', '']);
+      inputRefs.current[0]?.focus();
     }
   };
 
-  // Placeholder backend calls
-  const sendVerificationCode = async (phone: string) => {
-    console.log('sendVerificationCode ->', phone);
-    await new Promise(r => setTimeout(r, 700));
-    return true;
-  };
 
-  const verifyOtpCode = async (codeToVerify: string, phone: string) => {
-    console.log('verifyOtpCode', codeToVerify, phone);
-    await new Promise(r => setTimeout(r, 700));
-    return codeToVerify === '1234'; // demo only
-  };
 
   const handleBack = () => {
     if (onBack) {
@@ -159,7 +187,7 @@ const SignUpVerification: React.FC<Props> = ({ onBack, onSuccess }) => {
     }).start(() => router.back());
   };
 
-  const isDisabled = code.length !== 4 || isLocked;
+  const isDisabled = code.length !== 4 || isLocked || isLoading;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -189,25 +217,42 @@ const SignUpVerification: React.FC<Props> = ({ onBack, onSuccess }) => {
                   onKeyPress={e => handleKeyPress(e, i)}
                   keyboardType="number-pad"
                   maxLength={1}
-                  style={[styles.otpInput, d ? styles.otpFilled : null, isLocked ? styles.otpLocked : null]}
+                  style={[styles.otpInput, d ? styles.otpFilled : null, (isLocked || isLoading) ? styles.otpLocked : null]}
                   textAlign="center"
-                  editable={!isLocked}
+                  editable={!isLocked && !isLoading}
                 />
               ))}
             </View>
 
             <Text style={styles.hint}>Didn't receive code? Check your messages.</Text>
 
-            <TouchableOpacity onPress={handleResend} disabled={isTimerActive} style={styles.resendWrap}>
-              <Text style={[styles.resendText, isTimerActive ? styles.resendDisabled : null]}>
+            {/* Loading indicator */}
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#FF9427" />
+                <Text style={styles.loadingText}>
+                  {verifyOtpMutation.isPending ? 'Verifying...' : 'Sending code...'}
+                </Text>
+              </View>
+            )}
+
+            <TouchableOpacity onPress={handleResend} disabled={isTimerActive || isLoading} style={styles.resendWrap}>
+              <Text style={[styles.resendText, (isTimerActive || isLoading) ? styles.resendDisabled : null]}>
                 {isTimerActive ? `Resend Code (${timer}s)` : 'Resend Code'}
               </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
-            <TouchableOpacity style={[styles.verifyButton, isDisabled ? styles.verifyDisabled : null]} onPress={handleVerify} disabled={isDisabled}>
-              <Text style={[styles.verifyText, isDisabled ? styles.verifyTextDisabled : null]}>Verify</Text>
+            <TouchableOpacity style={[styles.verifyButton, isDisabled ? styles.verifyDisabled : null]} onPress={() => handleVerify()} disabled={isDisabled}>
+              {isLoading && verifyOtpMutation.isPending ? (
+                <View style={styles.buttonLoadingContainer}>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={[styles.verifyText, { marginLeft: 8 }]}>Verifying...</Text>
+                </View>
+              ) : (
+                <Text style={[styles.verifyText, isDisabled ? styles.verifyTextDisabled : null]}>Verify</Text>
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -261,6 +306,22 @@ const styles = StyleSheet.create({
   verifyDisabled: { backgroundColor: '#E0E0E0' },
   verifyText: { color: '#fff', fontFamily: 'OpenSans_700Bold', fontSize: 16 },
   verifyTextDisabled: { color: '#fff' },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  loadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'OpenSans_400Regular',
+  },
+  buttonLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
 
 export default SignUpVerification;

@@ -26,7 +26,7 @@ const AccountDeletion: React.FC = () => {
   const handleDelete = () => {
     // perform deletion logic here (API call / clear storage)
     // then redirect to welcome screen
-    router.replace('(screens)/WelcomeScreen');
+    router.replace('/WelcomeScreen');
   };
 
   const isDeletable = confirmation === 'DELETE';

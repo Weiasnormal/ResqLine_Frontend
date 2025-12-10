@@ -11,11 +11,17 @@ import {
   ScrollView,
   Animated,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSlideIn } from '../_transitions/slideIn';
 import { useUserProfile } from '../_contexts/UserProfileContext';
+
+// Import API hooks
+import { useVerifyOtp, useGenerateOtp } from '../_hooks/useApi';
+import { formatApiError } from '../_utils/apiHelpers';
 
 interface Props {
   onBack: () => void;
@@ -25,6 +31,7 @@ interface Props {
 
 const LogInVerification: React.FC<Props> = ({ onBack, phoneNumber, onSuccess }) => {
   const { updateProfile } = useUserProfile();
+  const router = useRouter();
   const [otpInputs, setOtpInputs] = useState(['', '', '', '']);
   const [otpCode, setOtpCode] = useState('');
   const [attempts, setAttempts] = useState(0);
@@ -34,6 +41,10 @@ const LogInVerification: React.FC<Props> = ({ onBack, phoneNumber, onSuccess }) 
   const inputRefs = useRef<(TextInput | null)[]>([null, null, null, null]);
   const slideAnimation = useSlideIn({ direction: 'right', distance: 300, duration: 300 });
   const MAX_ATTEMPTS = 5;
+
+  // API hooks
+  const verifyOtpMutation = useVerifyOtp();
+  const generateOtpMutation = useGenerateOtp();
 
   useEffect(() => {
     slideAnimation.slideIn();
@@ -75,73 +86,59 @@ const LogInVerification: React.FC<Props> = ({ onBack, phoneNumber, onSuccess }) 
     }
   };
 
-  const sendVerificationCode = async (phone: string) => {
-    console.log('Sending verification code to:', phone);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return true;
-  };
 
-  const verifyOtpCode = async (code: string, phone: string) => {
-    console.log('Verifying OTP code:', code, 'for phone:', phone);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return code === '1234';
-  };
-
-  const updatePhoneNumber = async (newPhoneNumber: string) => {
-    try {
-      console.log('Updating phone number in profile:', newPhoneNumber);
-      await new Promise(resolve => setTimeout(resolve, 800));
-      updateProfile({ phoneNumber: newPhoneNumber });
-      return true;
-    } catch (error) {
-      throw new Error('Failed to update phone number');
-    }
-  };
 
   const handleResendCode = async () => {
-    if (isTimerActive) return;
+    if (isTimerActive || generateOtpMutation.isPending) return;
     try {
-      setResendTimer(60);
-      setIsTimerActive(true);
-      setOtpInputs(['', '', '', '']);
-      setAttempts(0);
-      setIsLocked(false);
-      inputRefs.current[0]?.focus();
-      await sendVerificationCode(phoneNumber || '');
-    } catch (error) {
-      console.error('Resend failed', error);
-      Alert.alert('Error', 'Failed to resend verification code. Please try again.');
+      const result = await generateOtpMutation.mutateAsync({
+        mobileNumber: phoneNumber || '',
+      });
+
+      if (result.success) {
+        setResendTimer(60);
+        setIsTimerActive(true);
+        setOtpInputs(['', '', '', '']);
+        setAttempts(0);
+        setIsLocked(false);
+        inputRefs.current[0]?.focus();
+        
+        Alert.alert('Code Sent', 'A new verification code has been sent to your phone.');
+      }
+    } catch (error: any) {
+      const errorMessage = formatApiError(error.message || 'Failed to resend code');
+      Alert.alert('Resend Failed', errorMessage);
     }
   };
 
   const handleVerify = async () => {
-    if (otpCode.length !== 4 || isLocked) return;
+    if (otpCode.length !== 4 || isLocked || verifyOtpMutation.isPending) return;
+    
     try {
-      setAttempts(prev => prev + 1);
-      const isValid = await verifyOtpCode(otpCode, phoneNumber || '');
-      if (isValid) {
-        try {
-          await updatePhoneNumber(phoneNumber || '');
-          Alert.alert('Success!', 'You are logged in.', [
-            { text: 'OK', onPress: () => (onSuccess ? onSuccess() : onBack()) },
-          ]);
-        } catch (updateError) {
-          console.error('Failed to update phone number:', updateError);
-          Alert.alert('Update Failed', 'OTP verified but failed to update your profile.', [{ text: 'OK' }]);
-        }
-      } else {
-        setOtpInputs(['', '', '', '']);
-        inputRefs.current[0]?.focus();
-        if (attempts >= MAX_ATTEMPTS - 1) {
-          setIsLocked(true);
-          Alert.alert('Too Many Attempts', "You've reached the maximum number of attempts. Please request a new code.");
-        } else {
-          Alert.alert('Invalid Code', `Please check your code and try again. ${MAX_ATTEMPTS - attempts - 1} attempts remaining.`);
-        }
+      const result = await verifyOtpMutation.mutateAsync({
+        mobileNumber: phoneNumber || '',
+        otp: otpCode,
+      });
+
+      if (result.success) {
+        // Update user profile context
+        await updateProfile({ phoneNumber: phoneNumber || '' });
+        
+        // Navigate directly to home - user is logged in
+        router.replace({ pathname: '/(tabs)', params: { tab: 'home' } });
       }
-    } catch (error) {
-      console.error('Verification failed', error);
-      Alert.alert('Error', 'Failed to verify code. Please try again.');
+    } catch (error: any) {
+      setAttempts(prev => prev + 1);
+      setOtpInputs(['', '', '', '']);
+      inputRefs.current[0]?.focus();
+      
+      if (attempts >= MAX_ATTEMPTS - 1) {
+        setIsLocked(true);
+        Alert.alert('Too Many Attempts', "You've reached the maximum number of attempts. Please request a new code.");
+      } else {
+        const errorMessage = formatApiError(error.message || 'Verification failed');
+        Alert.alert('Invalid Code', `${errorMessage} ${MAX_ATTEMPTS - attempts - 1} attempts remaining.`);
+      }
     }
   };
 
@@ -171,27 +168,41 @@ const LogInVerification: React.FC<Props> = ({ onBack, phoneNumber, onSuccess }) 
                     <TextInput
                       key={index}
                       ref={ref => { inputRefs.current[index] = ref; }}
-                      style={[styles.otpInput, digit ? styles.otpInputFilled : {}, isLocked ? styles.otpInputLocked : {}]}
+                      style={[
+                        styles.otpInput, 
+                        digit ? styles.otpInputFilled : {}, 
+                        (isLocked || verifyOtpMutation.isPending) ? styles.otpInputLocked : {}
+                      ]}
                       value={digit}
                       onChangeText={text => handleOtpChange(text, index)}
                       onKeyPress={event => handleKeyPress(event, index)}
                       keyboardType="numeric"
                       maxLength={1}
                       textAlign="center"
-                      editable={!isLocked}
+                      editable={!isLocked && !verifyOtpMutation.isPending}
                     />
                   ))}
                 </View>
 
                 <Text style={styles.helpText}>Didn't receive code? Check your messages.</Text>
 
+                {/* Loading indicator */}
+                {(verifyOtpMutation.isPending || generateOtpMutation.isPending) && (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#FF9427" />
+                    <Text style={styles.loadingText}>
+                      {verifyOtpMutation.isPending ? 'Verifying...' : 'Sending code...'}
+                    </Text>
+                  </View>
+                )}
+
                 <TouchableOpacity
-                  style={[styles.resendButton, isTimerActive ? styles.resendButtonDisabled : {}]}
+                  style={[styles.resendButton, (isTimerActive || generateOtpMutation.isPending) ? styles.resendButtonDisabled : {}]}
                   onPress={handleResendCode}
-                  disabled={isTimerActive}
+                  disabled={isTimerActive || generateOtpMutation.isPending}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.resendButtonText, isTimerActive ? styles.resendButtonTextDisabled : {}]}>
+                  <Text style={[styles.resendButtonText, (isTimerActive || generateOtpMutation.isPending) ? styles.resendButtonTextDisabled : {}]}>
                     {isTimerActive ? `Resend Code (${resendTimer}s)` : 'Resend Code'}
                   </Text>
                 </TouchableOpacity>
@@ -209,13 +220,20 @@ const LogInVerification: React.FC<Props> = ({ onBack, phoneNumber, onSuccess }) 
 
             <View style={styles.bottomContainer}>
               <TouchableOpacity
-                style={[styles.verifyButton, otpCode.length !== 4 || isLocked ? styles.verifyButtonDisabled : {}]}
+                style={[styles.verifyButton, (otpCode.length !== 4 || isLocked || verifyOtpMutation.isPending) ? styles.verifyButtonDisabled : {}]}
                 onPress={handleVerify}
-                disabled={otpCode.length !== 4 || isLocked}
+                disabled={otpCode.length !== 4 || isLocked || verifyOtpMutation.isPending}
               >
-                <Text style={[styles.verifyButtonText, otpCode.length !== 4 || isLocked ? styles.verifyButtonTextDisabled : {}]}>
-                  Verify
-                </Text>
+                {verifyOtpMutation.isPending ? (
+                  <View style={styles.buttonLoadingContainer}>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text style={[styles.verifyButtonText, { marginLeft: 8 }]}>Verifying...</Text>
+                  </View>
+                ) : (
+                  <Text style={[styles.verifyButtonText, (otpCode.length !== 4 || isLocked) ? styles.verifyButtonTextDisabled : {}]}>
+                    Verify
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -278,6 +296,22 @@ const styles = StyleSheet.create({
   verifyButtonDisabled: { backgroundColor: '#E0E0E0' },
   verifyButtonText: { color: '#fff', fontSize: 16, fontFamily: 'OpenSans_700Bold',},
   verifyButtonTextDisabled: { color: '#999' },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  loadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'OpenSans_400Regular',
+  },
+  buttonLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
 
 export default LogInVerification;

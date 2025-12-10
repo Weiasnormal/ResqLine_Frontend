@@ -5,12 +5,20 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { locationService, UserLocation } from '../../_services/locationService';
 import { useUserProfile } from '../../_contexts/UserProfileContext';
+
+// Import API hooks
+import { useDeleteAccount } from '../../_hooks/useApi';
+import { formatApiError } from '../../_utils/apiHelpers';
+import { authApi } from '../../_api';
+import { handleLogout } from '../../_utils/authGuard';
 
 import Profilebg from '../../../assets/Profilebg.svg';
 import Profile from '../../../assets/Profile.svg';
@@ -32,6 +40,9 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const router = useRouter();
+
+  // API hooks
+  const deleteAccountMutation = useDeleteAccount();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -210,10 +221,19 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
       <LogoutConfirm
         visible={showLogoutConfirm}
         onCancel={handleCancelLogout}
-        onLogout={() => {
-          // optional: clear local profile/auth state here before redirect
-          setShowLogoutConfirm(false);
-          router.replace('(screens)/WelcomeScreen');
+        onLogout={async () => {
+          try {
+            // Clear local auth state and tokens
+            await authApi.logout();
+            setShowLogoutConfirm(false);
+            // Use the authGuard logout handler
+            await handleLogout();
+          } catch (error) {
+            console.error('Logout error:', error);
+            // Still logout locally even if API call fails
+            setShowLogoutConfirm(false);
+            await handleLogout();
+          }
         }}
       />
 
@@ -221,10 +241,36 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
       <DeleteConfirm
         visible={showDeleteConfirm}
         onCancel={handleCancelDelete}
-        onDelete={() => {
-          // hide overlay then navigate to AccountDeletion screen
-          setShowDeleteConfirm(false);
-          router.push('(screens)/AccountDeletion');
+        onDelete={async () => {
+          try {
+            setShowDeleteConfirm(false);
+            
+            // Show loading and call delete API
+            const result = await deleteAccountMutation.mutateAsync();
+            
+            if (result.success) {
+              Alert.alert(
+                'Account Deleted',
+                'Your account has been permanently deleted.',
+                [{
+                  text: 'OK',
+                  onPress: () => router.replace('/WelcomeScreen')
+                }]
+              );
+            }
+          } catch (error: any) {
+            const errorMessage = formatApiError(error.message || 'Failed to delete account');
+            Alert.alert('Delete Failed', errorMessage, [
+              {
+                text: 'Cancel',
+                style: 'cancel'
+              },
+              {
+                text: 'Try Again',
+                onPress: () => setShowDeleteConfirm(true)
+              }
+            ]);
+          }
         }}
       />
     </ScrollView>

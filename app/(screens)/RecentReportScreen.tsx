@@ -8,13 +8,27 @@ import {
   ScrollView,
   Animated,
   FlatList,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSlideIn } from '../_transitions/slideIn';
 import ReportCard, { Report } from '../components/card_modal/ReportCard';
 import { router } from 'expo-router';
-import { getAllRecentReports, getFilteredRecentReports } from '../_data/recentReportsData';
+
+// Import API hooks and utilities
+import { useReports, useReportsByStatus } from '../_hooks/useApi';
+import { Status, mapStatusToString } from '../_api/reports';
+import { formatApiError } from '../_utils/apiHelpers';
+import { 
+  filterReports, 
+  sortReports, 
+  SortOption,
+  ReportStatus,
+  ReportCategory,
+  FilterOptions 
+} from '../_utils/reportFilters';
 
 interface RecentReportScreenProps {
   onBack: () => void;
@@ -26,8 +40,12 @@ type FilterType = 'All' | 'Submitted' | 'Under Review';
 
 const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
-  const [filteredReports, setFilteredReports] = useState<Report[]>(getAllRecentReports());
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+
+  // API hooks for different report states
+  const { data: allReports, isLoading: loadingAll, error: errorAll } = useReports({ pageSize: 50, pageOffset: 0 });
+  const { data: submittedReports, isLoading: loadingSubmitted, error: errorSubmitted } = useReportsByStatus(Status.Submitted, { pageSize: 50, pageOffset: 0 });
+  const { data: reviewReports, isLoading: loadingReview, error: errorReview } = useReportsByStatus(Status.Under_Review, { pageSize: 50, pageOffset: 0 });
   
   const slideAnimation = useSlideIn({ 
     direction: 'right', 
@@ -39,10 +57,60 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
     slideAnimation.slideIn();
   }, []);
 
-  useEffect(() => {
-    // Filter reports based on active filter using shared data
-    setFilteredReports(getFilteredRecentReports(activeFilter));
-  }, [activeFilter]);
+  // Helper function to map category to icon
+  const getCategoryIcon = (category: string): string => {
+    switch (category.toLowerCase()) {
+      case 'fire':
+        return 'flame';
+      case 'medical':
+        return 'medical';
+      case 'accident':
+        return 'car-crash';
+      case 'crime':
+        return 'shield-half';
+      case 'disaster':
+        return 'warning';
+      case 'other':
+      default:
+        return 'alert-circle';
+    }
+  };
+
+  // Get filtered reports based on active filter
+  const getFilteredReports = (): Report[] => {
+    let apiReports: any[] = [];
+    
+    switch (activeFilter) {
+      case 'Submitted':
+        apiReports = submittedReports || [];
+        break;
+      case 'Under Review':
+        apiReports = reviewReports || [];
+        break;
+      default:
+        apiReports = allReports || [];
+    }
+
+    // Transform API data to match ReportCard expected format
+    return apiReports.map(report => ({
+      id: report.id,
+      title: report.title || report.description || report.category || 'Emergency Report',
+      status: mapStatusToString(report.status),
+      type: report.category, // Use category as type
+      typeIcon: getCategoryIcon(report.category), // Map category to icon
+      date: new Date(report.createdAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      location: `${report.location.latitude.toFixed(4)}, ${report.location.longitude.toFixed(4)}`, // Format as string
+      image: report.image, // Include image if available
+    }));
+  };
+
+  const filteredReports = getFilteredReports();
+  const isLoading = loadingAll || loadingSubmitted || loadingReview;
+  const hasError = errorAll || errorSubmitted || errorReview;
 
   const handleBack = () => {
     if (isAnimatingOut) return;
@@ -131,21 +199,60 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
 
           {/* Reports List */}
           <View style={styles.scrollContainer}>
-            <FlatList
-              data={filteredReports}
-              renderItem={renderReportCard}
-              keyExtractor={(item) => item.id.toString()}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.reportsListContainer}
-              ItemSeparatorComponent={() => <View style={styles.reportSeparator} />}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No reports found for this filter</Text>
-                </View>
-              }
-              ListFooterComponent={() => <View style={styles.listFooter} />}
-              style={styles.flatList}
-            />
+            {/* Loading State */}
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#FF9427" />
+                <Text style={styles.loadingText}>Loading reports...</Text>
+              </View>
+            )}
+
+            {/* Error State */}
+            {hasError && !isLoading && (
+              <View style={styles.errorContainer}>
+                <Ionicons name="alert-circle-outline" size={48} color="#FF4444" />
+                <Text style={styles.errorTitle}>Failed to Load Reports</Text>
+                <Text style={styles.errorText}>
+                  {formatApiError(hasError?.message || 'Unable to fetch reports')}
+                </Text>
+                <TouchableOpacity 
+                  style={styles.retryButton}
+                  onPress={() => {
+                    // Trigger refetch by changing activeFilter momentarily
+                    const current = activeFilter;
+                    setActiveFilter('All');
+                    setTimeout(() => setActiveFilter(current), 100);
+                  }}
+                >
+                  <Text style={styles.retryButtonText}>Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Reports List */}
+            {!isLoading && !hasError && (
+              <FlatList
+                data={filteredReports}
+                renderItem={renderReportCard}
+                keyExtractor={(item) => item.id.toString()}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.reportsListContainer}
+                ItemSeparatorComponent={() => <View style={styles.reportSeparator} />}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="document-text-outline" size={48} color="#999" />
+                    <Text style={styles.emptyText}>No reports found for "{activeFilter}"</Text>
+                    <Text style={styles.emptySubtext}>
+                      {activeFilter === 'All' 
+                        ? 'You haven\'t submitted any reports yet' 
+                        : `No reports with "${activeFilter}" status`}
+                    </Text>
+                  </View>
+                }
+                ListFooterComponent={() => <View style={styles.listFooter} />}
+                style={styles.flatList}
+              />
+            )}
           </View>
         </Animated.View>
       </SafeAreaView>
@@ -248,6 +355,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
+    marginTop: 12,
+    fontFamily: 'OpenSans_600SemiBold',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 8,
+    fontFamily: 'OpenSans_400Regular',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 12,
+    fontFamily: 'OpenSans_400Regular',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+  },
+  errorTitle: {
+    fontSize: 18,
+    color: '#FF4444',
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: 'OpenSans_600SemiBold',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+    fontFamily: 'OpenSans_400Regular',
+  },
+  retryButton: {
+    backgroundColor: '#FF9427',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'OpenSans_600SemiBold',
   },
 });
 

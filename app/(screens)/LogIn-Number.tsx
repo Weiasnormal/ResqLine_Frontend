@@ -10,6 +10,8 @@ import {
   Platform,
   ScrollView,
   Animated,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,11 +20,19 @@ import LogInVerification from './LogIn-Verification';
 import { useRouter } from 'expo-router';
 import InlineTextField from '../components/inputs/InlineTextField';
 
+// Import API hooks
+import { useGenerateOtp } from '../_hooks/useApi';
+import { formatApiError, formatPhoneForApi } from '../_utils/apiHelpers';
+import { redirectIfAuthenticated } from '../_utils/authGuard';
+
 const LogInNumber: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [validationError, setValidationError] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [showVerifyScreen, setShowVerifyScreen] = useState(false);
+
+  // API hooks
+  const generateOtpMutation = useGenerateOtp();
 
   const slideAnimation = useSlideIn({
     direction: 'right',
@@ -33,6 +43,8 @@ const LogInNumber: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
+    // Redirect to home if already authenticated
+    redirectIfAuthenticated();
     slideAnimation.slideIn();
   }, []);
 
@@ -50,14 +62,28 @@ const LogInNumber: React.FC = () => {
     if (validationError) setValidationError('');
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const error = validatePhoneNumber(phoneNumber);
     if (error) {
       setValidationError(error);
       return;
     }
-    // Show verification overlay
-    setShowVerifyScreen(true);
+
+    try {
+      const formattedPhone = formatPhoneForApi(`+63${phoneNumber}`);
+      
+      const result = await generateOtpMutation.mutateAsync({
+        mobileNumber: formattedPhone,
+      });
+
+      if (result.success) {
+        // Show verification screen with the phone number
+        setShowVerifyScreen(true);
+      }
+    } catch (error: any) {
+      const errorMessage = formatApiError(error.message || 'Failed to send verification code');
+      Alert.alert('Login Error', errorMessage);
+    }
   };
 
   const handleBackFromVerify = () => {
@@ -86,17 +112,17 @@ const LogInNumber: React.FC = () => {
             { transform: [{ translateX: slideAnimation.translateX }] },
           ]}
         >
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <Ionicons name="chevron-back" size={24} color="#000" />
+            </TouchableOpacity>
+            <View style={styles.headerSpacer} />
+          </View>
+
           <KeyboardAvoidingView
             style={styles.flex}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
-            <View style={styles.header}>
-              <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                <Ionicons name="chevron-back" size={24} color="#000" />
-              </TouchableOpacity>
-              <View style={styles.headerSpacer} />
-            </View>
-
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
               <View style={styles.contentContainer}>
                 {/* big left-aligned title */}
@@ -139,28 +165,38 @@ const LogInNumber: React.FC = () => {
                 </Text>
               </View>
             </ScrollView>
-
-            <View style={styles.bottomContainer}>
-              <TouchableOpacity
-                style={[styles.continueButton, !phoneNumber.trim() ? styles.continueButtonDisabled : {}]}
-                onPress={handleContinue}
-                disabled={!phoneNumber.trim()}
-              >
-                <Text style={styles.continueText}>Continue</Text>
-              </TouchableOpacity>
-            </View>
           </KeyboardAvoidingView>
+
+          <View style={styles.bottomContainer}>
+            <TouchableOpacity
+              style={[
+                styles.continueButton, 
+                (!phoneNumber.trim() || generateOtpMutation.isPending) ? styles.continueButtonDisabled : {}
+              ]}
+              onPress={handleContinue}
+              disabled={!phoneNumber.trim() || generateOtpMutation.isPending}
+            >
+              {generateOtpMutation.isPending ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={[styles.continueText, { marginLeft: 8 }]}>Sending code...</Text>
+                </View>
+              ) : (
+                <Text style={styles.continueText}>Continue</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         {showVerifyScreen && (
           <View style={styles.overlay}>
             <LogInVerification
-              phoneNumber={phoneNumber}
+              phoneNumber={formatPhoneForApi(`+63${phoneNumber}`)}
               onBack={handleBackFromVerify}
               onSuccess={() => {
                 setShowVerifyScreen(false);
                 // On successful verification navigate into the app
-                router.replace('(tabs)?tab=home');
+                router.replace({ pathname: '/(tabs)', params: { tab: 'home' } });
               }}
             />
           </View>
@@ -186,7 +222,7 @@ const styles = StyleSheet.create({
   headerSpacer: { width: 32 },
 
   scrollView: { flex: 1 },
-  contentContainer: { flex: 1, paddingHorizontal: 20, paddingTop: 32, paddingBottom: 20 },
+  contentContainer: { paddingHorizontal: 20, paddingTop: 32, paddingBottom: 20 },
   title: {
     fontSize: 30,
     lineHeight: 40,
@@ -223,7 +259,7 @@ const styles = StyleSheet.create({
   phoneInputError: { borderColor: '#FF4444', backgroundColor: '#FFF8F8' },
   errorText: { fontSize: 14, color: '#FF4444', marginTop: 8, marginLeft: 4 },
   termsText: { marginTop: 24, fontSize: 12, color: '#999', textAlign: 'center' },
-  bottomContainer: { paddingHorizontal: 16, paddingBottom: 36, backgroundColor: '#fff' },
+  bottomContainer: { paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#fff' },
   continueButton: {
     backgroundColor: '#F57C00',
     borderRadius: 10,
@@ -237,6 +273,10 @@ const styles = StyleSheet.create({
   },
   continueButtonDisabled: { backgroundColor: '#E0E0E0' },
   continueText: { color: '#fff', fontSize: 16, fontFamily: 'OpenSans_700Bold',},
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   overlay: {
     position: 'absolute',
     top: 0,

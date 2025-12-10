@@ -8,14 +8,16 @@ import {
   Image,
   Linking,
   Animated,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import HotlineModal from '../card_modal/HotlineModal';
 import ReportCard, { Report } from '../card_modal/ReportCard';
 import { EMERGENCY_DEPARTMENTS, DepartmentCategory } from '../../_data/emergencyDepartments';
-import { getLimitedRecentReports } from '../../_data/recentReportsData';
+import { useReports } from '../../_hooks/useApi';
+import { mapStatusToString } from '../../_api/reports';
 import HospitalIcon from '../../../assets/EmergencyIcons/hospital.svg';
 import FireIcon from '../../../assets/EmergencyIcons/fire.svg';
 import PoliceIcon from '../../../assets/EmergencyIcons/police.svg';
@@ -30,11 +32,69 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
   const [selectedCategory, setSelectedCategory] = useState<DepartmentCategory | null>(null);
   const [scaleAnim] = useState(new Animated.Value(1));
 
+  // Fetch real reports from API
+  const { data: allReports = [], isLoading: reportsLoading, error: reportsError } = useReports({ pageSize: 50, pageOffset: 0 });
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🏠 HomeBody - Reports state:');
+    console.log('  Loading:', reportsLoading);
+    console.log('  Error:', reportsError?.message || 'None');
+    console.log('  Reports count:', allReports.length);
+    if (allReports.length > 0) {
+      console.log('  First report:', allReports[0]);
+    }
+  }, [allReports, reportsLoading, reportsError]);
+
   // Helper function to truncate title for 2 rows
   const truncateTitle = (title: string, maxChars: number = 35) => {
     if (title.length <= maxChars) return title;
     return title.substring(0, maxChars).trim() + '...';
   };
+
+  // Helper function to map category to icon
+  const getCategoryIcon = (category: string): string => {
+    switch (category.toLowerCase()) {
+      case 'fire':
+        return 'flame';
+      case 'medical':
+        return 'medical';
+      case 'accident':
+        return 'car-crash';
+      case 'crime':
+        return 'shield-half';
+      case 'disaster':
+        return 'warning';
+      case 'other':
+      default:
+        return 'alert-circle';
+    }
+  };
+
+  // Transform API reports to match ReportCard format and limit to 5
+  const recentReports: Report[] = (allReports || [])
+    .slice(0, 5)
+    .map(report => {
+      // Convert category enum to string
+      const categoryString = typeof report.category === 'string' 
+        ? report.category 
+        : Object.keys(require('../../_api/reports').Category).find(key => require('../../_api/reports').Category[key] === report.category) || 'Other';
+      
+      return {
+        id: parseInt(report.id) || 0,
+        title: report.description || categoryString || 'Emergency Report',
+        status: mapStatusToString(report.status),
+        type: categoryString,
+        typeIcon: getCategoryIcon(categoryString),
+        date: new Date(report.createdAt).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        location: `${report.location.latitude.toFixed(4)}, ${report.location.longitude.toFixed(4)}`,
+        image: report.image,
+      };
+    });
 
 
   // Top Action Boxes
@@ -155,9 +215,6 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
     }
   };
 
-  // Get limited recent reports (max 5) for HomeBody display
-  const recentReports = getLimitedRecentReports(5);
-
   const handleReportPress = (report: Report) => {
     Alert.alert('Report Details', `Viewing details for: ${report.title}`);
   };
@@ -236,20 +293,45 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
         <Text style={styles.sectionSubtitle}>Track your ongoing emergencies</Text>
 
         {/* Recent Report Cards - Horizontal Scroll */}
-        <ScrollView 
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          style={styles.reportsScrollView}
-          contentContainerStyle={styles.reportsScrollContent}
-        >
-          {recentReports.map((report) => (
-            <ReportCard 
-              key={report.id} 
-              report={report} 
-              onPress={handleReportPress}
-            />
-          ))}
-        </ScrollView>
+        {reportsLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#FF8C00" />
+            <Text style={styles.loadingText}>Loading your reports...</Text>
+          </View>
+        )}
+
+        {reportsError && (
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={24} color="#FF6B6B" />
+            <Text style={styles.errorText}>Failed to load reports</Text>
+            <Text style={styles.errorSubtext}>{reportsError.message}</Text>
+          </View>
+        )}
+
+        {!reportsLoading && !reportsError && recentReports.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="file-tray-outline" size={32} color="#CCC" />
+            <Text style={styles.emptyText}>No reports yet</Text>
+            <Text style={styles.emptySubtext}>Submit your first emergency report</Text>
+          </View>
+        )}
+
+        {!reportsLoading && recentReports.length > 0 && (
+          <ScrollView 
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+            style={styles.reportsScrollView}
+            contentContainerStyle={styles.reportsScrollContent}
+          >
+            {recentReports.map((report) => (
+              <ReportCard 
+                key={report.id} 
+                report={report} 
+                onPress={handleReportPress}
+              />
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       {/* Safety Tips Section */}
@@ -408,6 +490,54 @@ const styles = StyleSheet.create({
   reportsScrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 2,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'OpenSans_400Regular',
+  },
+  errorContainer: {
+    backgroundColor: '#FFF5F5',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFE0E0',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#FF6B6B',
+    fontFamily: 'OpenSans_600SemiBold',
+    marginTop: 8,
+  },
+  errorSubtext: {
+    fontSize: 12,
+    color: '#FF8C8C',
+    fontFamily: 'OpenSans_400Regular',
+    marginTop: 4,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#999',
+    fontFamily: 'OpenSans_600SemiBold',
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 12,
+    color: '#CCC',
+    fontFamily: 'OpenSans_400Regular',
+    marginTop: 4,
   },
 
   safetyTipsGrid: {

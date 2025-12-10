@@ -5,6 +5,13 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
+// Import API hooks and utilities
+import { useCreateReport } from '../../_hooks/useApi';
+import { useUserProfile } from '../../_contexts/UserProfileContext';
+import { convertImageToBase64, validateReportData, formatApiError } from '../../_utils/apiHelpers';
+import { Category, mapCategoryToEnum } from '../../_api/reports';
+import { notificationManager, DomainEventType } from '../../_utils/notificationManager';
+
 interface Photo {
   uri: string;
   id: string;
@@ -26,6 +33,10 @@ const ReportBody = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownAnimation = useRef(new Animated.Value(0)).current;
+
+  // API hooks and context
+  const { profile } = useUserProfile();
+  const createReportMutation = useCreateReport();
 
   // Memoized location fetcher with no dependencies that could cause loops
   const fetchLocation = useCallback(async () => {
@@ -140,7 +151,7 @@ const ReportBody = () => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -180,36 +191,122 @@ const ReportBody = () => {
     return selectedCategory ? selectedCategory.label : 'Select Category';
   };
 
-  const handleReport = () => {
-    const reportData = {
-      title,
-      description,
-      location: address,
-      coords,
+  const handleReport = async () => {
+    if (!isFormValid()) return;
+
+    // Check if image is required and present
+    if (photos.length === 0) {
+      Alert.alert('Image Required', 'Please add at least one photo to your report.');
+      return;
+    }
+
+    // Validate report data
+    const validationError = validateReportData({
+      title: title.trim(),
       category,
-      photos: photos.map(photo => photo.uri),
-    };
+      location: coords,
+    });
 
-    console.log('Report Data:', reportData);
-    
-    // Show success alert
-    Alert.alert(
-      'Report Submitted',
-      'Your emergency report has been submitted successfully.',
-      [{ text: 'OK' }]
-    );
+    if (validationError) {
+      Alert.alert('Validation Error', validationError);
+      return;
+    }
 
-    // Reset form
-    setTitle('');
-    setDescription('');
-    setAddress('');
-    setCoords(null);
-    setCategory('');
-    setPhotos([]);
+    try {
+      // Convert photos to base64
+      let base64Image = '';
+      if (photos.length > 0) {
+        base64Image = await convertImageToBase64(photos[0].uri) || '';
+        
+          // Log image size for debugging
+          const imageSizeKB = Math.round(base64Image.length / 1024);
+          console.log(`📸 Image size: ${imageSizeKB} KB`);
+        
+          // Warn if image is very large (> 2MB)
+          if (imageSizeKB > 2048) {
+            Alert.alert(
+              'Large Image Warning',
+              `Image is ${imageSizeKB} KB. This may take longer to upload. Continue?`,
+              [
+                { text: 'Cancel', style: 'cancel', onPress: () => { throw new Error('Upload cancelled'); } },
+                { text: 'Continue', onPress: () => {} }
+              ]
+            );
+          }
+      }
+
+      // Create report data matching API structure
+      const reportData = {
+        title: title.trim(),
+        image: base64Image,
+        category: mapCategoryToEnum(category),
+        description: description.trim(),
+        location: {
+          latitude: coords?.latitude || 0,
+          longitude: coords?.longitude || 0,
+          altitude: 0,
+          accuracy: 10,
+          altitudeAccuracy: 0,
+        },
+      };
+
+        console.log('📤 Submitting report with:');
+        console.log('  - Title length:', reportData.title.length);
+        console.log('  - Category:', reportData.category);
+        console.log('  - Description length:', reportData.description.length);
+        console.log('  - Image size:', base64Image.length > 0 ? `${Math.round(base64Image.length / 1024)} KB` : 'No image');
+        console.log('  - Location:', `${reportData.location.latitude}, ${reportData.location.longitude}`);
+
+      // Submit report
+      const result = await createReportMutation.mutateAsync(reportData);
+
+      if (result.success) {
+        // Trigger ReportSubmitted domain event notification
+        await notificationManager.handleDomainEvent({
+          eventId: Date.now().toString(),
+          eventType: DomainEventType.ReportSubmitted,
+          aggregateId: result.data || '',
+          aggregateType: 'Report',
+          timestamp: new Date().toISOString(),
+          data: {
+            category,
+            title: title.trim(),
+            location: `${coords?.latitude}, ${coords?.longitude}`,
+          },
+          correlationId: '',
+        });
+
+        Alert.alert(
+          'Report Submitted',
+          'Your emergency report has been submitted successfully.',
+          [{ text: 'OK' }]
+        );
+
+        // Reset form
+        setTitle('');
+        setDescription('');
+        setAddress('');
+        setCoords(null);
+        setCategory('');
+        setPhotos([]);
+        
+        // Optionally refetch location for next report
+        fetchLocation();
+      }
+    } catch (error: any) {
+        console.error('❌ Report submission error:', error);
+        console.error('❌ Error response:', error.response?.data);
+        console.error('❌ Error status:', error.response?.status);
+      const errorMessage = formatApiError(error.message || 'Failed to submit report');
+        Alert.alert(
+          'Submit Failed', 
+          errorMessage + (error.response?.data?.title ? `\n\nDetails: ${error.response.data.title}` : '')
+        );
+    }
   };
 
   const isFormValid = () => {
-    return title.trim() !== '' && category !== '' && address.trim() !== '';
+    return photos.length > 0 && title.trim() !== '' && description.trim() !== '' && category !== '' && address.trim() !== '';
   };
 
   return (
@@ -232,7 +329,7 @@ const ReportBody = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Add Photo {photos.length}/5 (Optional)</Text>
+          <Text style={styles.label}>Add Photo {photos.length}/5 <Text style={styles.required}>*</Text></Text>
           <View style={styles.photoContainer}>
             <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
               <Ionicons name="camera-outline" size={24} color="#FF8C00" />
@@ -336,13 +433,27 @@ const ReportBody = () => {
 
         <View style={styles.section}>
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Description <Text style={styles.required}>*</Text></Text>
+            <Text style={styles.inputLabel}>Title <Text style={styles.required}>*</Text></Text>
             <TextInput
               style={[styles.input, title.trim() === '' ? styles.inputError : null]}
-              placeholder="Describe the emergency situation"
+              placeholder="Short title (e.g., Fire in building)"
               value={title}
               onChangeText={setTitle}
               placeholderTextColor="#999"
+              maxLength={100}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Description <Text style={styles.required}>*</Text></Text>
+            <TextInput
+              style={[styles.input, styles.textArea, description.trim() === '' ? styles.inputError : null]}
+              placeholder="Describe the emergency situation in detail"
+              value={description}
+              onChangeText={setDescription}
+              placeholderTextColor="#999"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
             />
           </View>
           <View style={styles.inputContainer}>
@@ -399,13 +510,23 @@ const ReportBody = () => {
         )}
 
         <TouchableOpacity
-          style={[styles.reportButton, isFormValid() ? styles.reportButtonActive : styles.reportButtonDisabled]}
+          style={[
+            styles.reportButton, 
+            (isFormValid() && !createReportMutation.isPending) ? styles.reportButtonActive : styles.reportButtonDisabled
+          ]}
           onPress={handleReport}
-          disabled={!isFormValid()}
+          disabled={!isFormValid() || createReportMutation.isPending}
         >
-          <Text style={[styles.reportButtonText, !isFormValid() && styles.reportButtonTextDisabled]}>
-            {isFormValid() ? 'Submit Emergency Report' : 'Complete Required Fields'}
-          </Text>
+          {createReportMutation.isPending ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#fff" />
+              <Text style={[styles.reportButtonText, { marginLeft: 8 }]}>Submitting...</Text>
+            </View>
+          ) : (
+            <Text style={[styles.reportButtonText, !isFormValid() && styles.reportButtonTextDisabled]}>
+              {isFormValid() ? 'Submit Emergency Report' : 'Complete Required Fields'}
+            </Text>
+          )}
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -658,6 +779,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FC8100',
     fontFamily: 'OpenSans_400Regular',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   locationHeader: {
     flexDirection: 'row',

@@ -8,6 +8,8 @@ import {
   Animated,
   Platform,
   KeyboardAvoidingView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,12 +17,22 @@ import { useSlideIn } from '../_transitions/slideIn';
 import { useRouter } from 'expo-router';
 import InlineTextField from '../components/inputs/InlineTextField';
 
+// Import API hooks and utilities
+import { useRegister, useGenerateOtp } from '../_hooks/useApi';
+import { formatApiError, formatPhoneForApi } from '../_utils/apiHelpers';
+import { notificationManager, DomainEventType } from '../_utils/notificationManager';
+import { redirectIfAuthenticated } from '../_utils/authGuard';
+
 const SignUpBasicInfo: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false);
+
+  // API hooks
+  const registerMutation = useRegister();
+  const generateOtpMutation = useGenerateOtp();
 
   // validate like ChangeNumberScreen: require exactly 10 digits (local number without country code)
   const validatePhoneNumber = (number: string) => {
@@ -46,19 +58,60 @@ const SignUpBasicInfo: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
+    // Redirect to home if already authenticated
+    redirectIfAuthenticated();
     slideAnimation.slideIn();
   }, []);
 
   const isPhoneValid = validatePhoneNumber(phoneNumber) === '';
+  const isLoading = registerMutation.isPending || generateOtpMutation.isPending;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setPhoneTouched(true);
     if (!isPhoneValid || !firstName || !lastName) return;
-    const formatted = `+63${phoneNumber}`;
-    const path = `(screens)/SignUp-Verification?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}&phoneNumber=${encodeURIComponent(
-      formatted
-    )}`;
-    router.push(path);
+    
+    try {
+      const formattedPhone = formatPhoneForApi(`+63${phoneNumber}`);
+      
+      // Step 1: Register user
+      const registerResult = await registerMutation.mutateAsync({
+        mobileNumber: formattedPhone,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      });
+
+      if (registerResult.success) {
+        // Trigger UserRegistered domain event notification
+        const userId = registerResult.data || '';
+        await notificationManager.handleDomainEvent({
+          eventId: Date.now().toString(),
+          eventType: DomainEventType.UserRegistered,
+          aggregateId: userId,
+          aggregateType: 'User',
+          timestamp: new Date().toISOString(),
+          data: {
+            firstName,
+            lastName,
+            mobileNumber: formattedPhone,
+          },
+          correlationId: '',
+        });
+
+        // Step 2: Generate OTP for verification
+        const otpResult = await generateOtpMutation.mutateAsync({
+          mobileNumber: formattedPhone,
+        });
+
+        if (otpResult.success) {
+          // Navigate to verification screen with user data
+          const path = `(screens)/SignUp-Verification?firstName=${encodeURIComponent(firstName)}&lastName=${encodeURIComponent(lastName)}&phoneNumber=${encodeURIComponent(formattedPhone)}`;
+          router.push(path);
+        }
+      }
+    } catch (error: any) {
+      const errorMessage = formatApiError(error.message || 'Registration failed');
+      Alert.alert('Registration Error', errorMessage);
+    }
   };
 
   const handleBack = () => {
@@ -75,17 +128,17 @@ const SignUpBasicInfo: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <Animated.View style={[styles.keyboardAvoidingView, { transform: [{ translateX: slideAnimation.translateX }] }]}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <Ionicons name="chevron-back" size={24} color="#191716" />
+          </TouchableOpacity>
+          <View style={styles.headerSpacer} />
+        </View>
+
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-              <Ionicons name="chevron-back" size={24} color="#191716" />
-            </TouchableOpacity>
-            <View style={styles.headerSpacer} />
-          </View>
-
           <View style={styles.content}>
             <Text style={styles.title}>Create Your ResqLine Account</Text>
             <Text style={styles.subtitle}>First, let's enter your basic information</Text>
@@ -142,17 +195,29 @@ const SignUpBasicInfo: React.FC = () => {
               <Text style={styles.termsLink}>Privacy Policy</Text>
             </Text>
           </View>
-
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={[styles.continueButton, (!isPhoneValid || !firstName || !lastName) ? styles.continueButtonDisabled : null]}
-              onPress={handleContinue}
-              disabled={!isPhoneValid || !firstName || !lastName}
-            >
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
         </KeyboardAvoidingView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[
+              styles.continueButton, 
+              (!isPhoneValid || !firstName || !lastName || isLoading) ? styles.continueButtonDisabled : null
+            ]}
+            onPress={handleContinue}
+            disabled={!isPhoneValid || !firstName || !lastName || isLoading}
+          >
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={[styles.continueButtonText, { marginLeft: 8 }]}>
+                  {registerMutation.isPending ? 'Registering...' : 'Sending code...'}
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.continueButtonText}>Continue</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </Animated.View>
     </SafeAreaView>
   );
@@ -166,7 +231,6 @@ const styles = StyleSheet.create({
   keyboardAvoidingView: { flex: 1 },
   flex: { flex: 1 },
   content: {
-    flex: 1,
     paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 12,
@@ -241,7 +305,7 @@ const styles = StyleSheet.create({
     color: '#FF9427',
     fontFamily: 'OpenSans_600SemiBold',
   },
-  footer: { paddingHorizontal: 20, paddingBottom: 24 },
+  footer: { paddingHorizontal: 20, paddingVertical: 16 },
   continueButton: {
     width: '100%',
     backgroundColor: '#FF9427',
@@ -258,6 +322,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontFamily: 'OpenSans_600SemiBold',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   phoneError: {
     fontSize: 14,

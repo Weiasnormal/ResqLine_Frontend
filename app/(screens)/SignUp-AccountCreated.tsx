@@ -39,7 +39,7 @@ const AccountCreated: React.FC = () => {
             if (phoneNumber) updates.phoneNumber = phoneNumber;
             if (username) updates.username = username;
             if (Object.keys(updates).length) updateProfile(updates);
-            router.replace('(tabs)?tab=home');
+            router.replace({ pathname: '/(tabs)', params: { tab: 'home' } });
           }}
         >
           <Text style={styles.continueText}>Continue</Text>
