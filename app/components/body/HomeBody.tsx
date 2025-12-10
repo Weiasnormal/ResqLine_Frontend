@@ -33,18 +33,21 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
   const [scaleAnim] = useState(new Animated.Value(1));
 
   // Fetch real reports from API
-  const { data: allReports = [], isLoading: reportsLoading, error: reportsError } = useReports({ pageSize: 50, pageOffset: 0 });
+  // const { data: allReports = [], isLoading: reportsLoading, error: reportsError } = useReports({ pageSize: 50, pageOffset: 0 });
+  const allReports: any[] = [];
+  const reportsLoading = false;
+  const reportsError = null;
 
   // Debug logging
-  React.useEffect(() => {
-    console.log('🏠 HomeBody - Reports state:');
-    console.log('  Loading:', reportsLoading);
-    console.log('  Error:', reportsError?.message || 'None');
-    console.log('  Reports count:', allReports.length);
-    if (allReports.length > 0) {
-      console.log('  First report:', allReports[0]);
-    }
-  }, [allReports, reportsLoading, reportsError]);
+  // React.useEffect(() => {
+  //   console.log('🏠 HomeBody - Reports state:');
+  //   console.log('  Loading:', reportsLoading);
+  //   console.log('  Error:', reportsError?.message || 'None');
+  //   console.log('  Reports count:', allReports.length);
+  //   if (allReports.length > 0) {
+  //     console.log('  First report:', allReports[0]);
+  //   }
+  // }, [allReports, reportsLoading, reportsError]);
 
   // Helper function to truncate title for 2 rows
   const truncateTitle = (title: string, maxChars: number = 35) => {

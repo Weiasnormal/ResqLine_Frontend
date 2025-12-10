@@ -1,8 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, Animated, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, Animated, ActivityIndicator, Image, Modal } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Location from 'expo-location';
-import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
 // Import API hooks and utilities
@@ -11,11 +10,7 @@ import { useUserProfile } from '../../_contexts/UserProfileContext';
 import { convertImageToBase64, validateReportData, formatApiError } from '../../_utils/apiHelpers';
 import { Category, mapCategoryToEnum } from '../../_api/reports';
 import { notificationManager, DomainEventType } from '../../_utils/notificationManager';
-
-interface Photo {
-  uri: string;
-  id: string;
-}
+import { Photo, showPhotoPickerAlert } from '../../_utils/camera';
 
 interface LocationCoords {
   latitude: number;
@@ -32,6 +27,8 @@ const ReportBody = () => {
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<Photo | null>(null);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const dropdownAnimation = useRef(new Animated.Value(0)).current;
 
   // API hooks and context
@@ -138,36 +135,26 @@ const ReportBody = () => {
     { label: 'Other', value: 'other' },
   ];
 
-  const pickImage = async () => {
-    if (photos.length >= 5) {
-      Alert.alert('Photo Limit', 'You can only add up to 5 photos.');
-      return;
-    }
-
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'We need camera roll permissions to select photos.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const newPhoto: Photo = {
-        uri: result.assets[0].uri,
-        id: Date.now().toString(),
-      };
-      setPhotos([...photos, newPhoto]);
-    }
+  const handleAddPhoto = () => {
+    showPhotoPickerAlert(
+      (photo) => setPhotos([...photos, photo]),
+      5,
+      photos.length
+    );
   };
 
   const removePhoto = (id: string) => {
     setPhotos(photos.filter(photo => photo.id !== id));
+  };
+
+  const handlePhotoLongPress = (photo: Photo) => {
+    setPreviewPhoto(photo);
+    setIsPreviewVisible(true);
+  };
+
+  const closePreview = () => {
+    setIsPreviewVisible(false);
+    setPreviewPhoto(null);
   };
 
   const toggleDropdown = () => {
@@ -310,6 +297,7 @@ const ReportBody = () => {
   };
 
   return (
+    <>
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <TouchableOpacity 
         style={styles.content} 
@@ -331,9 +319,9 @@ const ReportBody = () => {
         <View style={styles.section}>
           <Text style={styles.label}>Add Photo {photos.length}/5 <Text style={styles.required}>*</Text></Text>
           <View style={styles.photoContainer}>
-            <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+            <TouchableOpacity style={styles.photoButton} onPress={handleAddPhoto}>
               <Ionicons name="camera-outline" size={24} color="#FF8C00" />
-              <Text style={styles.photoButtonText}>Add Photo</Text>
+              <Text style={styles.photoButtonText}>Add {'\n'}Photo</Text>
             </TouchableOpacity>
             
             {photos.length > 0 && (
@@ -344,7 +332,12 @@ const ReportBody = () => {
                 showsHorizontalScrollIndicator={false}
               >
                 {photos.map((photo) => (
-                  <View key={photo.id} style={styles.photoItem}>
+                  <TouchableOpacity 
+                    key={photo.id} 
+                    style={styles.photoItem}
+                    onLongPress={() => handlePhotoLongPress(photo)}
+                    delayLongPress={500}
+                  >
                     <TouchableOpacity 
                       style={styles.closeButton}
                       onPress={() => removePhoto(photo.id)}
@@ -353,7 +346,7 @@ const ReportBody = () => {
                     </TouchableOpacity>
                     <Ionicons name="image-outline" size={20} color="#666" />
                     <Text style={styles.photoName}>Photo {photos.indexOf(photo) + 1}</Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </ScrollView>
             )}
@@ -529,9 +522,59 @@ const ReportBody = () => {
           )}
         </TouchableOpacity>
       </TouchableOpacity>
-
-
     </ScrollView>
+
+    {/* Photo Preview Modal */}
+    <Modal
+      visible={isPreviewVisible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={closePreview}
+    >
+      <View style={styles.modalOverlay}>
+        <TouchableOpacity 
+          style={styles.modalCloseArea} 
+          activeOpacity={1} 
+          onPress={closePreview}
+        >
+          <View style={styles.modalContent}>
+            <TouchableOpacity 
+              style={styles.modalCloseButton}
+              onPress={closePreview}
+            >
+              <Ionicons name="close-circle" size={32} color="#fff" />
+            </TouchableOpacity>
+            
+            {previewPhoto && (
+              <Image 
+                source={{ uri: previewPhoto.uri }} 
+                style={styles.previewImage}
+                resizeMode="contain"
+              />
+            )}
+            
+            <View style={styles.previewFooter}>
+              <Text style={styles.previewText}>
+                Photo {previewPhoto ? photos.indexOf(previewPhoto) + 1 : 0} of {photos.length}
+              </Text>
+              <TouchableOpacity 
+                style={styles.deletePhotoButton}
+                onPress={() => {
+                  if (previewPhoto) {
+                    removePhoto(previewPhoto.id);
+                    closePreview();
+                  }
+                }}
+              >
+                <Ionicons name="trash-outline" size={20} color="#fff" />
+                <Text style={styles.deletePhotoText}>Delete Photo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </Modal>
+    </>
   );
 };
 
@@ -582,7 +625,7 @@ const styles = StyleSheet.create({
   },
   photoButtonText: {
     color: '#FF8C00',
-    marginTop: 8,
+    marginTop: 3,
     fontSize: 10,
     textAlign: 'center',
     fontFamily: 'OpenSans_400Regular',
@@ -842,6 +885,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FF8C00',
     fontFamily: 'OpenSans_400Regular',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseArea: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    padding: 8,
+  },
+  previewImage: {
+    width: '100%',
+    height: 400,
+    borderRadius: 8,
+    marginTop: 40,
+  },
+  previewFooter: {
+    width: '100%',
+    marginTop: 20,
+    alignItems: 'center',
+    gap: 12,
+  },
+  previewText: {
+    fontSize: 14,
+    color: '#fff',
+    fontFamily: 'OpenSans_400Regular',
+    marginBottom: 8,
+  },
+  deletePhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF4444',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 8,
+  },
+  deletePhotoText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'OpenSans_600SemiBold',
   },
 });
 

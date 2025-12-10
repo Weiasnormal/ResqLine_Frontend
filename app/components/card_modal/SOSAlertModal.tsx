@@ -8,50 +8,45 @@ import {
   Modal,
   Alert,
   Keyboard,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { Photo, showPhotoPickerAlert } from '../../_utils/camera';
 
 interface SOSAlertModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-interface Photo {
-  uri: string;
-  id: string;
-}
-
 const SOSAlertModal = ({ visible, onClose }: SOSAlertModalProps) => {
   const [details, setDetails] = useState('');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<Photo | null>(null);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
 
-  const pickImage = async () => {
-    if (photos.length >= 2) {
-      Alert.alert('Photo Limit', 'You can only add up to 2 photos.');
-      return;
-    }
+  const handleAddPhoto = () => {
+    showPhotoPickerAlert(
+      (photo) => setPhotos([...photos, photo]),
+      2,
+      photos.length
+    );
+  };
 
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'We need camera roll permissions to select photos.');
-      return;
-    }
+  const handlePhotoLongPress = (photo: Photo) => {
+    setPreviewPhoto(photo);
+    setIsPreviewVisible(true);
+  };
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+  const closePreview = () => {
+    setIsPreviewVisible(false);
+    setPreviewPhoto(null);
+  };
 
-    if (!result.canceled && result.assets[0]) {
-      const newPhoto: Photo = {
-        uri: result.assets[0].uri,
-        id: Date.now().toString(),
-      };
-      setPhotos([...photos, newPhoto]);
+  const deletePhotoFromPreview = () => {
+    if (previewPhoto) {
+      setPhotos(photos.filter(p => p.id !== previewPhoto.id));
+      closePreview();
     }
   };
 
@@ -150,7 +145,7 @@ const SOSAlertModal = ({ visible, onClose }: SOSAlertModalProps) => {
             <Text style={styles.photoLabel}>Add Photo {photos.length}/2 (Optional)</Text>
             <View style={styles.photoRow}>
               {/* Square Add Photo Button */}
-              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+              <TouchableOpacity style={styles.photoButton} onPress={handleAddPhoto}>
                 <Ionicons name="camera-outline" size={24} color="#FF4444" />
                 <Text style={styles.photoButtonText}>Add Photo</Text>
               </TouchableOpacity>
@@ -158,16 +153,21 @@ const SOSAlertModal = ({ visible, onClose }: SOSAlertModalProps) => {
               {/* Horizontal Photo List */}
               <View style={styles.photosList}>
                 {photos.map((photo, index) => (
-                  <View key={photo.id} style={styles.photoItem}>
+                  <TouchableOpacity 
+                    key={photo.id} 
+                    style={styles.photoItem}
+                    onLongPress={() => handlePhotoLongPress(photo)}
+                    delayLongPress={500}
+                  >
                     <TouchableOpacity 
                       style={styles.closeButton}
                       onPress={() => setPhotos(photos.filter(p => p.id !== photo.id))}
                     >
                       <Ionicons name="close-circle" size={16} color="#FF4444" />
                     </TouchableOpacity>
-                    <Ionicons name="image-outline" size={18} color="#666" />
+                    <Image source={{ uri: photo.uri }} style={styles.photoThumbnail} />
                     <Text style={styles.photoName}>Photo {index + 1}</Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -188,6 +188,50 @@ const SOSAlertModal = ({ visible, onClose }: SOSAlertModalProps) => {
           </View>
         </TouchableOpacity>
       </TouchableOpacity>
+
+      {/* Photo Preview Modal */}
+      {previewPhoto && (
+        <Modal
+          visible={isPreviewVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={closePreview}
+        >
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity 
+              style={styles.modalCloseArea} 
+              activeOpacity={1} 
+              onPress={closePreview}
+            >
+              <View style={styles.modalContent}>
+                <TouchableOpacity 
+                  style={styles.modalCloseButton} 
+                  onPress={closePreview}
+                >
+                  <Ionicons name="close" size={30} color="#fff" />
+                </TouchableOpacity>
+                
+                <Image 
+                  source={{ uri: previewPhoto.uri }} 
+                  style={styles.previewImage}
+                  resizeMode="contain"
+                />
+                
+                <View style={styles.previewFooter}>
+                  <Text style={styles.previewText}>Long press photo to preview</Text>
+                  <TouchableOpacity 
+                    style={styles.deletePhotoButton}
+                    onPress={deletePhotoFromPreview}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#fff" />
+                    <Text style={styles.deletePhotoText}>Delete Photo</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      )}
     </Modal>
   );
 };
@@ -332,6 +376,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'center',
   },
+  photoThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 4,
+  },
   closeButton: {
     position: 'absolute',
     top: -2,
@@ -339,6 +388,62 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     zIndex: 1,
+  },
+  // Photo Preview Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseArea: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
+  },
+  previewImage: {
+    width: '90%',
+    height: '70%',
+  },
+  previewFooter: {
+    position: 'absolute',
+    bottom: 50,
+    alignItems: 'center',
+  },
+  previewText: {
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 15,
+    opacity: 0.8,
+  },
+  deletePhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF4444',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    gap: 8,
+  },
+  deletePhotoText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'OpenSans_600SemiBold',
   },
   buttonContainer: {
     paddingTop: 0,
