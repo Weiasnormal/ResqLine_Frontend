@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { useDeleteAccount } from '../../_hooks/useApi';
 import { formatApiError } from '../../_utils/apiHelpers';
 import { authApi } from '../../_api';
 import { handleLogout } from '../../_utils/authGuard';
+import { getDeviceName } from '../../_utils/deviceInfo';
 
 import Profilebg from '../../../assets/Profilebg.svg';
 import Profile from '../../../assets/Profile.svg';
@@ -39,10 +40,31 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [displayName, setDisplayName] = useState<string>('');
   const router = useRouter();
 
   // API hooks
   const deleteAccountMutation = useDeleteAccount();
+
+  // Load display name on mount and when profile changes
+  useEffect(() => {
+    const loadDisplayName = async () => {
+      if (profile.username && profile.username.trim()) {
+        setDisplayName(profile.username);
+      } else {
+        const fullName = getFullName();
+        if (!fullName || fullName === 'User') {
+          // Use device name as fallback if no name is set
+          const deviceName = await getDeviceName();
+          setDisplayName(deviceName);
+        } else {
+          setDisplayName(fullName);
+        }
+      }
+    };
+    
+    loadDisplayName();
+  }, [profile, getFullName]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -164,7 +186,7 @@ const ProfileBody: React.FC<ProfileBodyProps> = ({ onTabPress, onEditInformation
             </View>
 
             <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>{getFullName()}</Text>
+              <Text style={styles.userName}>{displayName}</Text>
               <Text style={styles.userPhone}>{formatPhoneNumber(profile.phoneNumber || '')}</Text>
               <Text style={styles.userLocation}>{getUserLocationText()}</Text>
             </View>

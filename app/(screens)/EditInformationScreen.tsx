@@ -23,6 +23,7 @@ import ChangeNumberScreen from './ChangeNumberScreen';
 // Import API hooks
 import { useUpdateUserInformation } from '../_hooks/useApi';
 import { formatApiError } from '../_utils/apiHelpers';
+import { getDefaultNamesFromDevice } from '../_utils/deviceInfo';
 
 interface EditInformationScreenProps {
   onBack: () => void;
@@ -55,10 +56,21 @@ const EditInformationScreen: React.FC<EditInformationScreenProps> = ({ onBack })
   }, []);
 
   useEffect(() => {
-    setFirstName(profile.firstName ?? '');
-    setLastName(profile.lastName ?? '');
-    setUsername(profile.username ?? '');
-    setPhoneNumber(profile.phoneNumber ?? '');
+    const loadProfileData = async () => {
+      // If firstName or lastName is empty, use device name as default
+      if (!profile.firstName || !profile.lastName) {
+        const deviceNames = await getDefaultNamesFromDevice();
+        setFirstName(profile.firstName || deviceNames.firstName);
+        setLastName(profile.lastName || deviceNames.lastName);
+      } else {
+        setFirstName(profile.firstName);
+        setLastName(profile.lastName);
+      }
+      setUsername(profile.username ?? '');
+      setPhoneNumber(profile.phoneNumber ?? '');
+    };
+    
+    loadProfileData();
   }, [profile]);
 
   const handlePhoneNumberPress = () => {

@@ -20,7 +20,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onTabPress, onEditInforma
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#FC8100" />
+        <StatusBar barStyle="dark-content" backgroundColor="#FC8100" />
         <View style={styles.wrapper}>
           <View style={styles.body}>
             <ProfileBody 
