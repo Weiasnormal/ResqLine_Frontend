@@ -43,18 +43,9 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
   // API hooks for different report states
-  // const { data: allReports, isLoading: loadingAll, error: errorAll } = useReports({ pageSize: 50, pageOffset: 0 });
-  // const { data: submittedReports, isLoading: loadingSubmitted, error: errorSubmitted } = useReportsByStatus(Status.Submitted, { pageSize: 50, pageOffset: 0 });
-  // const { data: reviewReports, isLoading: loadingReview, error: errorReview } = useReportsByStatus(Status.Under_Review, { pageSize: 50, pageOffset: 0 });
-  const allReports: any[] = [];
-  const submittedReports: any[] = [];
-  const reviewReports: any[] = [];
-  const loadingAll = false;
-  const loadingSubmitted = false;
-  const loadingReview = false;
-  const errorAll = null;
-  const errorSubmitted = null;
-  const errorReview = null;
+  const { data: allReports, isLoading: loadingAll, error: errorAll } = useReports({ pageSize: 50, pageOffset: 0 });
+  const { data: submittedReports, isLoading: loadingSubmitted, error: errorSubmitted } = useReportsByStatus(Status.Submitted, { pageSize: 50, pageOffset: 0 });
+  const { data: reviewReports, isLoading: loadingReview, error: errorReview } = useReportsByStatus(Status.Under_Review, { pageSize: 50, pageOffset: 0 });
   
   const slideAnimation = useSlideIn({ 
     direction: 'right', 

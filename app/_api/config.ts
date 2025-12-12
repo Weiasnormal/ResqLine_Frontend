@@ -34,7 +34,7 @@ export const USER_ID_KEY = 'resqline_user_id';
 // Request interceptor to add auth token and request context
 apiClient.interceptors.request.use(
   async (config) => {
-    try {
+    try { 
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;

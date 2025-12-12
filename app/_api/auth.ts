@@ -47,12 +47,12 @@ export const authApi = {
     }
   },
 
-  // Generate OTP for phone verification
+  // Generate OTP for registration
   generateOtp: async (data: GenerateOtpRequest): Promise<ApiResponse<null>> => {
     try {
       const payload = { mobileNumber: data.mobileNumber };
-      console.log('📤 Generating OTP for:', payload.mobileNumber);
-      const response = await apiClient.post('/otp/generate', payload);
+      console.log('📤 Generating OTP for registration:', payload.mobileNumber);
+      const response = await apiClient.post('/otp/register/send', payload);
       console.log('✅ OTP generated successfully');
       return handleApiResponse<null>(response);
     } catch (error: any) {
@@ -66,12 +66,31 @@ export const authApi = {
     }
   },
 
-  // Verify OTP and get JWT token
+  // Generate OTP for login
+  generateLoginOtp: async (data: GenerateOtpRequest): Promise<ApiResponse<null>> => {
+    try {
+      const payload = { mobileNumber: data.mobileNumber };
+      console.log('📤 Generating OTP for login:', payload.mobileNumber);
+      const response = await apiClient.post('/otp/login/send', payload);
+      console.log('✅ Login OTP generated successfully');
+      return handleApiResponse<null>(response);
+    } catch (error: any) {
+      console.error('❌ Login OTP generation failed:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+      });
+      return handleApiError(error);
+    }
+  },
+
+  // Verify OTP for login and get JWT token
   verifyOtp: async (data: VerifyOtpRequest): Promise<ApiResponse<string>> => {
     try {
-      const response = await apiClient.post('/otp/verify', {
+      const response = await apiClient.post('/otp/login/verify', {
         mobileNumber: data.mobileNumber,
-        Otp: data.otp,
+        otp: data.otp,
       });
       
       if (response.data) {
@@ -86,6 +105,23 @@ export const authApi = {
       }
       
       return handleApiResponse<string>(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  // Verify OTP for registration (different from login)
+  verifyRegisterOtp: async (data: RegisterRequest & { otp: string }): Promise<ApiResponse<null>> => {
+    try {
+      const response = await apiClient.post('/otp/register/verify', {
+        MobileNumber: data.mobileNumber,
+        FirstName: data.firstName,
+        LastName: data.lastName,
+        Otp: data.otp,
+      });
+      
+      console.log('✅ Registration OTP verified successfully');
+      return handleApiResponse<null>(response);
     } catch (error) {
       return handleApiError(error);
     }
@@ -124,6 +160,8 @@ export const authApi = {
 // Convenience functions for easier usage in screens
 export const registerUser = authApi.register;
 export const generateOtp = authApi.generateOtp;
+export const generateLoginOtp = authApi.generateLoginOtp;
 export const verifyOtp = authApi.verifyOtp;
+export const verifyRegisterOtp = authApi.verifyRegisterOtp;
 export const logout = authApi.logout;
 export const isAuthenticated = authApi.isAuthenticated;

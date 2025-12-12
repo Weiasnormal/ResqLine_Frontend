@@ -33,21 +33,18 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
   const [scaleAnim] = useState(new Animated.Value(1));
 
   // Fetch real reports from API
-  // const { data: allReports = [], isLoading: reportsLoading, error: reportsError } = useReports({ pageSize: 50, pageOffset: 0 });
-  const allReports: any[] = [];
-  const reportsLoading = false;
-  const reportsError = null;
+  const { data: allReports = [], isLoading: reportsLoading, error: reportsError } = useReports({ pageSize: 50, pageOffset: 0 });
 
   // Debug logging
-  // React.useEffect(() => {
-  //   console.log('🏠 HomeBody - Reports state:');
-  //   console.log('  Loading:', reportsLoading);
-  //   console.log('  Error:', reportsError?.message || 'None');
-  //   console.log('  Reports count:', allReports.length);
-  //   if (allReports.length > 0) {
-  //     console.log('  First report:', allReports[0]);
-  //   }
-  // }, [allReports, reportsLoading, reportsError]);
+  React.useEffect(() => {
+  console.log('🏠 HomeBody - Reports state:');
+  console.log('  Loading:', reportsLoading);
+  console.log('  Error:', reportsError?.message || 'None');
+    console.log('  Reports count:', allReports.length);
+    if (allReports.length > 0) {
+      console.log('  First report:', allReports[0]);
+    }
+  }, [allReports, reportsLoading, reportsError]);
 
   // Helper function to truncate title for 2 rows
   const truncateTitle = (title: string, maxChars: number = 35) => {
@@ -95,12 +92,12 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
           year: 'numeric',
         }),
         location: `${report.location.latitude.toFixed(4)}, ${report.location.longitude.toFixed(4)}`,
-        image: report.image,
+        image: report.images && report.images.length > 0 ? report.images[0] : undefined,
       };
     });
 
 
-  // Top Action Boxes
+  // Top Action Boxess
   const topActionBoxes = [
     {
       id: 'report',
@@ -550,7 +547,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   safetyTipWrapper: {
-    width: '48%',
+    width: '49%',
+    height: '42%',
     marginBottom: 16,
   },
   safetyTipButton: {

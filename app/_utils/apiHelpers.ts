@@ -76,13 +76,9 @@ export const formatDate = (dateString: string): string => {
 
 // Validate required fields for report creation
 export const validateReportData = (data: {
-  title: string;
   category: string;
   location?: any;
 }): string | null => {
-  if (!data.title || data.title.trim().length < 3) {
-    return 'Title must be at least 3 characters long';
-  }
   if (!data.category || data.category === 'none') {
     return 'Please select a category';
   }

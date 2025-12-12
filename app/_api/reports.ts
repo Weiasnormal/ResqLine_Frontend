@@ -27,7 +27,7 @@ export interface Location {
 
 export interface CreateReportRequest {
   // title: string; 
-  image: string; // base64 encoded image
+  images: string[]; // array of base64 encoded images (max 5)
   category: Category;
   description?: string;
   location: Location;
@@ -35,7 +35,7 @@ export interface CreateReportRequest {
 
 export interface ReportResponse {
   id: string;
-  image: string; 
+  images: string[]; 
   category: Category;
   // title: string; 
   description?: string;
@@ -57,7 +57,7 @@ export const reportsApi = {
     try {
       const response = await apiClient.post('/reports', {
         // Title: data.title, 
-        Image: data.image || '', 
+        Images: data.images || [], 
         Category: data.category,
         Description: data.description,
         Location: {

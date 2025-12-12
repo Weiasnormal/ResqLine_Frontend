@@ -20,7 +20,6 @@ interface LocationCoords {
 const ReportBody = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [category, setCategory] = useState('');
-  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [coords, setCoords] = useState<LocationCoords | null>(null);
   const [address, setAddress] = useState('');
@@ -189,7 +188,6 @@ const ReportBody = () => {
 
     // Validate report data
     const validationError = validateReportData({
-      title: title.trim(),
       category,
       location: coords,
     });
@@ -200,32 +198,36 @@ const ReportBody = () => {
     }
 
     try {
-      // Convert photos to base64
-      let base64Image = '';
-      if (photos.length > 0) {
-        base64Image = await convertImageToBase64(photos[0].uri) || '';
-        
-          // Log image size for debugging
-          const imageSizeKB = Math.round(base64Image.length / 1024);
-          console.log(`📸 Image size: ${imageSizeKB} KB`);
-        
-          // Warn if image is very large (> 2MB)
-          if (imageSizeKB > 2048) {
-            Alert.alert(
-              'Large Image Warning',
-              `Image is ${imageSizeKB} KB. This may take longer to upload. Continue?`,
-              [
-                { text: 'Cancel', style: 'cancel', onPress: () => { throw new Error('Upload cancelled'); } },
-                { text: 'Continue', onPress: () => {} }
-              ]
-            );
-          }
+      // Convert all photos to base64 (up to 5)
+      const base64Images: string[] = [];
+      let totalSizeKB = 0;
+      
+      for (const photo of photos) {
+        const base64 = await convertImageToBase64(photo.uri);
+        if (base64) {
+          base64Images.push(base64);
+          totalSizeKB += Math.round(base64.length / 1024);
+        }
+      }
+      
+      // Log images info
+      console.log(`📸 Converting ${photos.length} images, total size: ${totalSizeKB} KB`);
+      
+      // Warn if total images are very large (> 5MB)
+      if (totalSizeKB > 5120) {
+        Alert.alert(
+          'Large Images Warning',
+          `Total images size is ${totalSizeKB} KB. This may take longer to upload. Continue?`,
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => { throw new Error('Upload cancelled'); } },
+            { text: 'Continue', onPress: () => {} }
+          ]
+        );
       }
 
       // Create report data matching API structure
       const reportData = {
-        title: title.trim(),
-        image: base64Image,
+        images: base64Images,
         category: mapCategoryToEnum(category),
         description: description.trim(),
         location: {
@@ -238,10 +240,10 @@ const ReportBody = () => {
       };
 
         console.log('📤 Submitting report with:');
-        console.log('  - Title length:', reportData.title.length);
         console.log('  - Category:', reportData.category);
         console.log('  - Description length:', reportData.description.length);
-        console.log('  - Image size:', base64Image.length > 0 ? `${Math.round(base64Image.length / 1024)} KB` : 'No image');
+        console.log('  - Images count:', reportData.images.length);
+        console.log('  - Total size:', `${totalSizeKB} KB`);
         console.log('  - Location:', `${reportData.location.latitude}, ${reportData.location.longitude}`);
 
       // Submit report
@@ -257,7 +259,6 @@ const ReportBody = () => {
           timestamp: new Date().toISOString(),
           data: {
             category,
-            title: title.trim(),
             location: `${coords?.latitude}, ${coords?.longitude}`,
           },
           correlationId: '',
@@ -270,7 +271,6 @@ const ReportBody = () => {
         );
 
         // Reset form
-        setTitle('');
         setDescription('');
         setAddress('');
         setCoords(null);
@@ -293,7 +293,7 @@ const ReportBody = () => {
   };
 
   const isFormValid = () => {
-    return photos.length > 0 && title.trim() !== '' && description.trim() !== '' && category !== '' && address.trim() !== '';
+    return photos.length > 0 && description.trim() !== '' && category !== '' && address.trim() !== '';
   };
 
   return (
@@ -425,17 +425,6 @@ const ReportBody = () => {
         </View>
 
         <View style={styles.section}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Title <Text style={styles.required}>*</Text></Text>
-            <TextInput
-              style={[styles.input, title.trim() === '' ? styles.inputError : null]}
-              placeholder="Short title (e.g., Fire in building)"
-              value={title}
-              onChangeText={setTitle}
-              placeholderTextColor="#999"
-              maxLength={100}
-            />
-          </View>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Description <Text style={styles.required}>*</Text></Text>
             <TextInput
