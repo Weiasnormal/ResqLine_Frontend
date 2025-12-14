@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 export interface Report {
-  id: number;
+  id: string | number; // Accept both string (API IDs) and number for compatibility
   title: string;
   status: string;
   type: string;
@@ -37,6 +37,15 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
   const truncateStatus = (status: string, maxChars: number = 10) => {
     if (status.length <= maxChars) return status;
     return status.substring(0, maxChars).trim() + '.';
+  };
+
+  // Helper function to show only city from location
+  const truncateLocation = (location: string) => {
+    // Split by comma and get the 4th element (city)
+    // Address format: streetNumber, street, district, city, region, postalCode, country
+    const parts = location.split(',').map(part => part.trim());
+    // Return city (index 3) or last part if less than 4 parts
+    return parts[0] || parts[parts.length - 1] || location;
   };
 
   const handlePress = () => {
@@ -84,7 +93,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
             </View>
             <View style={styles.reportLocationContainer}>
               <Ionicons name="location-outline" size={12} color="#666" />
-              <Text style={styles.reportLocation}>{report.location}</Text>
+              <Text style={styles.reportLocation}>{truncateLocation(report.location)}</Text>
             </View>
           </View>
           <Text style={styles.reportDate}>📅 {report.date}</Text>
@@ -95,6 +104,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
         style={styles.viewDetailsButton}
         onPress={handlePress}
         activeOpacity={0.7}
+        disabled={true}
       >
         <Text style={styles.viewDetailsText}>View Details</Text>
       </TouchableOpacity>

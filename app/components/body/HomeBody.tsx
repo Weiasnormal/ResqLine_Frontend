@@ -84,7 +84,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
         : Object.keys(require('../../_api/reports').Category).find(key => require('../../_api/reports').Category[key] === report.category) || 'Other';
       
       return {
-        id: parseInt(report.id) || 0,
+        id: report.id, // Use original ID as string to avoid duplicate keys
         title: report.description || categoryString || 'Emergency Report',
         status: mapStatusToString(report.status),
         type: categoryString,

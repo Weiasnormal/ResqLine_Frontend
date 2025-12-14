@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Import API hooks and utilities
 import { useCreateReport } from '../../_hooks/useApi';
+import { locationService } from '../../_services/locationService';
 import { useUserProfile } from '../../_contexts/UserProfileContext';
 import { convertImageToBase64, validateReportData, formatApiError } from '../../_utils/apiHelpers';
 import { Category, mapCategoryToEnum } from '../../_api/reports';
@@ -34,7 +35,7 @@ const ReportBody = () => {
   const { profile } = useUserProfile();
   const createReportMutation = useCreateReport();
 
-  // Memoized location fetcher with no dependencies that could cause loops
+  // Memoized location fetcher using locationService for consistency
   const fetchLocation = useCallback(async () => {
     if (isLocationLoading) return; // Prevent duplicate calls
     
@@ -44,74 +45,21 @@ const ReportBody = () => {
     setAddress('');
 
     try {
-      // Request foreground location permission
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      // Use locationService to get location (don't use cache for fresh reports)
+      const location = await locationService.getCurrentLocation(false);
       
-      if (status !== 'granted') {
-        setLocationError('Location permission denied. Unable to auto-fill location.');
+      if (!location) {
+        setLocationError('Failed to get location. Please ensure GPS is enabled and permissions are granted.');
         return;
       }
 
-      // Check if location services are enabled
-      const servicesEnabled = await Location.hasServicesEnabledAsync();
-      if (!servicesEnabled) {
-        setLocationError('Location services are disabled. Please enable them in device settings.');
-        return;
-      }
-
-      // Get current position with high accuracy
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-        timeInterval: 5000,
-        distanceInterval: 1,
-      });
-
-      const { latitude, longitude } = location.coords;
-      setCoords({ latitude, longitude });
-
-      // Reverse geocode to get human-readable address
-      try {
-        const reverseGeocode = await Location.reverseGeocodeAsync({
-          latitude,
-          longitude,
-        });
-
-        if (reverseGeocode.length > 0) {
-          const result = reverseGeocode[0];
-          const addressParts = [
-            result.streetNumber,
-            result.street,
-            result.district,
-            result.city,
-            result.region,
-            result.postalCode,
-            result.country,
-          ].filter(Boolean);
-
-          const formattedAddress = addressParts.length > 0 
-            ? addressParts.join(', ')
-            : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-          
-          setAddress(formattedAddress);
-        } else {
-          // Fallback to coordinates
-          setAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-        }
-      } catch (geocodeError) {
-        console.log('Reverse geocoding failed, using coordinates:', geocodeError);
-        setAddress(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-      }
+      // Set coordinates and address
+      setCoords({ latitude: location.latitude, longitude: location.longitude });
+      setAddress(location.address || `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`);
 
     } catch (error: any) {
       console.error('Error fetching location:', error);
-      
-      if (error.code === 'E_LOCATION_TIMEOUT') {
-        setLocationError('Location request timed out. Please check your GPS signal.');
-      } else if (error.code === 'E_LOCATION_UNAVAILABLE') {
-        setLocationError('Location temporarily unavailable. Please try again.');
-      } else {
-        setLocationError('Failed to get location. Please ensure GPS is enabled.');
-      }
+      setLocationError('Failed to get location. Please ensure GPS is enabled.');
     } finally {
       setIsLocationLoading(false);
     }
