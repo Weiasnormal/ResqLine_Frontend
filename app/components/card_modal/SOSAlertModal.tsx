@@ -156,8 +156,7 @@ const SOSAlertModal = ({ visible, onClose }: SOSAlertModalProps) => {
                   <TouchableOpacity 
                     key={photo.id} 
                     style={styles.photoItem}
-                    onLongPress={() => handlePhotoLongPress(photo)}
-                    delayLongPress={500}
+                    onPress={() => handlePhotoLongPress(photo)}
                   >
                     <TouchableOpacity 
                       style={styles.closeButton}
@@ -218,7 +217,7 @@ const SOSAlertModal = ({ visible, onClose }: SOSAlertModalProps) => {
                 />
                 
                 <View style={styles.previewFooter}>
-                  <Text style={styles.previewText}>Long press photo to preview</Text>
+                  <Text style={styles.previewText}>Tap photo to preview</Text>
                   <TouchableOpacity 
                     style={styles.deletePhotoButton}
                     onPress={deletePhotoFromPreview}

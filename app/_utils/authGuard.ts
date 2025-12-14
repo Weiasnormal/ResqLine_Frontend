@@ -10,7 +10,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
     console.log('🔑 Auth Check - Token exists:', !!token);
     console.log('🔑 Token Key:', TOKEN_KEY);
     if (token) {
-      console.log('🔑 Token preview:', token.substring(0, 20) + '...');
+      console.log('🔑 Token length:', token.length, 'chars [VALUE REDACTED]');
     }
     return !!token;
   } catch (error) {

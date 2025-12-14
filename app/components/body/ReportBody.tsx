@@ -135,9 +135,14 @@ const ReportBody = () => {
   ];
 
   const handleAddPhoto = () => {
+    // Limit to 1 photo maximum
+    if (photos.length >= 1) {
+      Alert.alert('Photo Limit', 'You can only upload 1 photo. Please remove the existing photo first.');
+      return;
+    }
     showPhotoPickerAlert(
-      (photo) => setPhotos([...photos, photo]),
-      5,
+      (photo) => setPhotos([photo]),
+      1,
       photos.length
     );
   };
@@ -319,11 +324,11 @@ const ReportBody = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Add Photo {photos.length}/5 <Text style={styles.required}>*</Text></Text>
+          <Text style={styles.label}>Add Photo {photos.length}/1 <Text style={styles.required}>*</Text></Text>
           <View style={styles.photoContainer}>
-            <TouchableOpacity style={styles.photoButton} onPress={handleAddPhoto}>
-              <Ionicons name="camera-outline" size={24} color="#FF8C00" />
-              <Text style={styles.photoButtonText}>Add {'\n'}Photo</Text>
+            <TouchableOpacity style={styles.photoButton} onPress={handleAddPhoto} disabled={photos.length >= 1}>
+              <Ionicons name="camera-outline" size={24} color={photos.length >= 1 ? "#ccc" : "#FF8C00"} />
+              <Text style={[styles.photoButtonText, photos.length >= 1 && styles.photoButtonTextDisabled]}>Add {'\n'}Photo</Text>
             </TouchableOpacity>
             
             {photos.length > 0 && (
@@ -337,8 +342,7 @@ const ReportBody = () => {
                   <TouchableOpacity 
                     key={photo.id} 
                     style={styles.photoItem}
-                    onLongPress={() => handlePhotoLongPress(photo)}
-                    delayLongPress={500}
+                    onPress={() => handlePhotoLongPress(photo)}
                   >
                     <TouchableOpacity 
                       style={styles.closeButton}
@@ -346,7 +350,7 @@ const ReportBody = () => {
                     >
                       <Ionicons name="close-circle" size={18} color="#FF4444" />
                     </TouchableOpacity>
-                    <Ionicons name="image-outline" size={20} color="#666" />
+                    <Image source={{ uri: photo.uri }} style={styles.photoThumbnail} />
                     <Text style={styles.photoName}>Photo {photos.indexOf(photo) + 1}</Text>
                   </TouchableOpacity>
                 ))}
@@ -545,9 +549,7 @@ const ReportBody = () => {
             )}
             
             <View style={styles.previewFooter}>
-              <Text style={styles.previewText}>
-                Photo {previewPhoto ? photos.indexOf(previewPhoto) + 1 : 0} of {photos.length}
-              </Text>
+              <Text style={styles.previewText}>Tap photo to preview</Text>
               <TouchableOpacity 
                 style={styles.deletePhotoButton}
                 onPress={() => {
@@ -621,6 +623,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'OpenSans_400Regular',
   },
+  photoButtonTextDisabled: {
+    color: '#ccc',
+  },
   photoContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -646,6 +651,10 @@ const styles = StyleSheet.create({
     width: 100,
     height: 95,
     position: 'relative',
+  },  photoThumbnail: {
+    width: 60,
+    height: 50,
+    borderRadius: 4,
   },
   photoName: {
     fontSize: 12,

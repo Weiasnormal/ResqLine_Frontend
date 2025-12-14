@@ -62,20 +62,15 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
             <Text style={styles.reportTitle} numberOfLines={2} ellipsizeMode="tail">
               {truncateTitle(report.title, 35)}
             </Text>
+            {/* Hardcoded status to 'Dispatched' - TODO: Implement dynamic status */}
             <View style={[
               styles.reportStatusContainer, 
-              report.status === 'Submitted' && styles.submittedStatusContainer,
-              report.status === 'Under Review' && styles.reviewStatusContainer,
-              report.status === 'Dispatched' && styles.dispatchedStatusContainer,
-              report.status === 'Resolved' && styles.resolvedStatusContainer
+              styles.dispatchedStatusContainer
             ]}>
               <Text style={[
                 styles.reportStatus,
-                report.status === 'Submitted' && styles.submittedStatusText,
-                report.status === 'Under Review' && styles.reviewStatusText,
-                report.status === 'Dispatched' && styles.dispatchedStatusText,
-                report.status === 'Resolved' && styles.resolvedStatusText
-              ]}>{truncateStatus(report.status, 15)}</Text>
+                styles.dispatchedStatusText
+              ]}>{truncateStatus('Dispatched', 15)}</Text>
             </View>
           </View>
           <View style={styles.reportMetaRow}>

@@ -201,10 +201,10 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
             <View style={styles.headerSpacer} />
           </View>
 
-          {/* Filter Pills */}
-          <View style={styles.filtersContainer}>
+          {/* Filter Pills - Commented out for now */}
+          {/* <View style={styles.filtersContainer}>
             {(['All', 'Submitted', 'Under Review'] as FilterType[]).map(renderFilterPill)}
-          </View>
+          </View> */}
 
           {/* Reports List */}
           <View style={styles.scrollContainer}>
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   },
   reportsListContainer: {
     padding: 20,
-    paddingTop: 0,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   listFooter: {

@@ -11,7 +11,7 @@ const Header = ({ title = 'Report' }: HeaderProps) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        <Ionicons name="notifications-outline" size={24} color="#000" />
+        {/* Notification bell icon removed */}
       </View>
     </View>
   );

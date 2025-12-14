@@ -41,9 +41,10 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
   console.log('  Loading:', reportsLoading);
   console.log('  Error:', reportsError?.message || 'None');
     console.log('  Reports count:', allReports.length);
-    if (allReports.length > 0) {
-      console.log('  First report:', allReports[0]);
-    }
+    // Commented out to avoid logging large report objects with base64 images
+    // if (allReports.length > 0) {
+    //   console.log('  First report:', allReports[0]);
+    // }
   }, [allReports, reportsLoading, reportsError]);
 
   // Helper function to truncate title for 2 rows

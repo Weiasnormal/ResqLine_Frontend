@@ -98,7 +98,8 @@ export const authApi = {
         status: response.status,
         hasData: !!response.data,
         dataType: typeof response.data,
-        data: response.data,
+        dataLength: typeof response.data === 'string' ? response.data.length : 0,
+        data: '[TOKEN REDACTED FOR SECURITY]',
       });
       
       if (response.data && typeof response.data === 'string') {
@@ -114,7 +115,7 @@ export const authApi = {
         return handleApiResponse<string>(response);
       } else {
         // Backend returned 202 Accepted without token - this is a backend bug
-        console.error('⚠️ Backend did not return a token! Response:', response.data);
+        console.error('⚠️ Backend did not return a token! Response type:', typeof response.data, 'hasData:', !!response.data);
         return {
           error: 'Authentication successful but no token received. Please contact support.',
           success: false,
