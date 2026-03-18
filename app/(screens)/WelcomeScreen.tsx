@@ -59,7 +59,8 @@ const WelcomeScreen: React.FC = () => {
 
           <TouchableOpacity
             style={styles.logInButton}
-            onPress={() => router.push('/LogIn-Number')}
+            //onPress={() => router.push('/LogIn-Number')}
+            onPress={() => router.push({ pathname: '/(tabs)', params: { tab: 'home' } })}
           >
             <Text style={styles.logInText}>Log In</Text>
           </TouchableOpacity>
