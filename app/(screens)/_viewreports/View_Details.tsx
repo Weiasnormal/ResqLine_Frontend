@@ -15,6 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+// Import react-native-maps
+import MapView, { Marker } from 'react-native-maps';
 
 import { useReport } from '../../_hooks/useApi';
 import { Category, Status } from '../../_api/reports';
@@ -79,11 +81,6 @@ const formatReportedAt = (isoDate: string): string => {
     });
 };
 
-const buildMapPreviewUrl = (latitude?: number, longitude?: number): string | null => {
-    if (typeof latitude !== 'number' || typeof longitude !== 'number') return null;
-    return `https://staticmap.openstreetmap.de/staticmap.php?center=${latitude},${longitude}&zoom=16&size=900x600&markers=${latitude},${longitude},lightblue1`;
-};
-
 const ViewDetailsScreen: React.FC = () => {
     const params = useLocalSearchParams<{ id?: string; reportId?: string }>();
     const reportId = (params.reportId || params.id || '') as string;
@@ -100,7 +97,11 @@ const ViewDetailsScreen: React.FC = () => {
     const categoryLabel = report ? categoryLabelMap[report.category] || 'Other' : 'Other';
     const locationLabel = report?.location?.reverseGeoCode || 'Location unavailable';
     const createdAt = report?.createdAt || new Date().toISOString();
-    const mapPreviewUrl = buildMapPreviewUrl(report?.location?.latitude, report?.location?.longitude);
+    
+    // Extract map coordinates safely
+    const hasCoordinates = typeof report?.location?.latitude === 'number' && typeof report?.location?.longitude === 'number';
+    const latitude = report?.location?.latitude || 14.0716; // Fallback to San Pablo City
+    const longitude = report?.location?.longitude || 121.3233;
 
     const timeline = useMemo<TimelineItem[]>(() => {
         const createdDate = new Date(createdAt);
@@ -162,18 +163,35 @@ const ViewDetailsScreen: React.FC = () => {
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F2F4F6" />
 
-            {/* Map and Pin grouped and animated together */}
+            {/* Map Group Animated Together */}
             <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: mapTranslateY }] }]}>
-                {mapPreviewUrl ? (
-                    <Image source={{ uri: mapPreviewUrl }} style={styles.mapPreview} resizeMode="cover" />
+                {hasCoordinates ? (
+                    <MapView 
+                        style={styles.mapPreview}
+                        initialRegion={{
+                            latitude: latitude,
+                            longitude: longitude,
+                            latitudeDelta: 0.01, // Keep it zoomed in close
+                            longitudeDelta: 0.01,
+                        }}
+                        // Disable interactions since it's meant to be a preview banner initially
+                        zoomEnabled={true}
+                        scrollEnabled={true}
+                        pitchEnabled={false}
+                        rotateEnabled={false}
+                    >
+                        <Marker 
+                            coordinate={{ latitude, longitude }}
+                            title={categoryLabel}
+                            description="Reported Location"
+                        />
+                    </MapView>
                 ) : (
                     <View style={[styles.mapPreview, styles.mapPlaceholder]}>
-                        <Text style={styles.mapPlaceholderText}>Map preview unavailable</Text>
+                        <Ionicons name="map-outline" size={48} color="#9AA0A6" />
+                        <Text style={styles.mapPlaceholderText}>Location unavailable</Text>
                     </View>
                 )}
-                <View style={styles.pinMarker}>
-                    <Ionicons name="location" size={28} color="#FF3B5C" />
-                </View>
             </Animated.View>
 
             <SafeAreaView style={styles.headerSafeArea} pointerEvents="box-none">
@@ -204,8 +222,9 @@ const ViewDetailsScreen: React.FC = () => {
 
             {/* Simulated Animated Bottom Sheet "Modal" */}
             {detailsVisible && (
-                <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]}>
-                    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#00000000' }]} />
+                <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]} pointerEvents="box-none">
+                    {/* Background overlay that allows tapping the map behind it */}
+                    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]} pointerEvents="none" />
 
                     <Animated.ScrollView
                         style={StyleSheet.absoluteFill}
@@ -219,7 +238,7 @@ const ViewDetailsScreen: React.FC = () => {
                             { useNativeDriver: true }
                         )}
                     >
-                        {/* 30% Transparent Spacer acts as the top of the 70% sheet */}
+                        {/* Transparent Spacer allows interacting with the map behind it */}
                         <TouchableOpacity
                             style={{ height: SCREEN_HEIGHT * 0.3 }}
                             activeOpacity={1}
@@ -243,7 +262,7 @@ const ViewDetailsScreen: React.FC = () => {
                             </TouchableOpacity>
                         </Animated.View>
 
-                        {/* Modal Content - using View instead of ScrollView since the outer is now the master scroll */}
+                        {/* Modal Content */}
                         <SafeAreaView style={[styles.modalContent, { minHeight: SCREEN_HEIGHT * 0.9, maxHeight: undefined }]}>
                             <View style={styles.modalScrollContent}>
                                 <Text style={styles.detailsTitle}>{title}</Text>
@@ -256,6 +275,7 @@ const ViewDetailsScreen: React.FC = () => {
                                         <Ionicons name="flame-outline" size={14} color="#FF8C42" />
                                         <Text style={styles.metaText}>{categoryLabel}</Text>
                                     </View>
+                                     <View style={{ width: 70 }} />
                                     <View style={styles.metaItem}>
                                         <Ionicons name="location-outline" size={14} color="#666" />
                                         <Text style={styles.metaText} numberOfLines={1}>{locationLabel}</Text>
@@ -359,7 +379,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#F2F4F6',
+        backgroundColor: 'rgba(242, 244, 246, 0.9)', 
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
@@ -385,14 +405,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#E5E8EC',
     },
     mapPlaceholderText: {
+        marginTop: 12,
         color: '#5F6368',
         fontSize: 14,
         fontFamily: 'OpenSans_600SemiBold',
-    },
-    pinMarker: {
-        position: 'absolute',
-        top: '34%',
-        alignSelf: 'center',
     },
     summaryCard: {
         position: 'absolute',
@@ -404,7 +420,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 28,
         paddingHorizontal: 24,
         paddingTop: 24,
-        paddingBottom: 54,
+        paddingBottom: 24,
         elevation: 8,
     },
     summaryTitle: {
@@ -429,9 +445,9 @@ const styles = StyleSheet.create({
     expandFab: {
         position: 'absolute',
         right: 24,
-        bottom: 190,
-        width: 44,
-        height: 44,
+        bottom: 140,
+        width: 34,
+        height: 34,
         borderRadius: 22,
         backgroundColor: '#191716',
         alignItems: 'center',
@@ -457,7 +473,7 @@ const styles = StyleSheet.create({
     },
     modalScrollContent: {
         paddingHorizontal: 18,
-        paddingTop: 0,
+        paddingTop: 20,
         paddingBottom: 28,
     },
     detailsTitle: {
