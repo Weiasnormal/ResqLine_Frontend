@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import HotlineModal from '../card_modal/HotlineModal';
 import ReportCard, { Report } from '../card_modal/ReportCard';
 import { EMERGENCY_DEPARTMENTS, DepartmentCategory } from '../../_data/emergencyDepartments';
@@ -219,7 +220,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
   };
 
   const handleReportPress = (report: Report) => {
-    Alert.alert('Report Details', `Viewing details for: ${report.title}`);
+    router.push(`/ReportDetails/${report.id}`);
   };
 
   return (

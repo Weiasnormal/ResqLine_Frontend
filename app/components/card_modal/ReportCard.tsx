@@ -104,7 +104,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
         style={styles.viewDetailsButton}
         onPress={handlePress}
         activeOpacity={0.7}
-        disabled={true}
+        disabled={!onPress}
       >
         <Text style={styles.viewDetailsText}>View Details</Text>
       </TouchableOpacity>

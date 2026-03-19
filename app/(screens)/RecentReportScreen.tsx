@@ -202,9 +202,9 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
           </View>
 
           {/* Filter Pills - Commented out for now */}
-          {/* <View style={styles.filtersContainer}>
-            {(['All', 'Submitted', 'Under Review'] as FilterType[]).map(renderFilterPill)}
-          </View> */}
+          <View style={styles.filtersContainer}>
+            {(['All', 'Submitted', 'Under Review' ] as FilterType[]).map(renderFilterPill)}
+          </View>
 
           {/* Reports List */}
           <View style={styles.scrollContainer}>
@@ -214,7 +214,7 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
                 <ActivityIndicator size="large" color="#FF9427" />
                 <Text style={styles.loadingText}>Loading reports...</Text>
               </View>
-            )}
+            )} 
 
             {/* Error State */}
             {hasError && !isLoading && (
