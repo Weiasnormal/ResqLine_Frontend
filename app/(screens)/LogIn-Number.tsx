@@ -23,7 +23,6 @@ import InlineTextField from '../components/inputs/InlineTextField';
 // Import API hooks
 import { useGenerateLoginOtp } from '../_hooks/useApi';
 import { formatApiError, formatPhoneForApi } from '../_utils/apiHelpers';
-import { redirectIfAuthenticated } from '../_utils/authGuard';
 
 const LogInNumber: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -43,8 +42,6 @@ const LogInNumber: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to home if already authenticated
-    redirectIfAuthenticated();
     slideAnimation.slideIn();
   }, []);
 

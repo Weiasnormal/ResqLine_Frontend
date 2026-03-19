@@ -80,6 +80,8 @@ const TabsLayout = () => {
     switch (activeTab) {
       case 'welcome':
         return <Welcome onTabPress={handleTabPress} />;
+      case 'home':
+        return <Home onTabPress={handleTabPress} onRecentReports={handleRecentReports} />;
       case 'sos':
         return <SOS onTabPress={handleTabPress} />;
       case 'hotline':
@@ -88,9 +90,8 @@ const TabsLayout = () => {
         return <Report onTabPress={handleTabPress} />;
       case 'profile':
         return <Profile onTabPress={handleTabPress} onEditInformation={handleEditInformation} onPhoneNumberPress={handlePhoneNumberPressFromProfile} onRecentReports={handleRecentReports} />;
-      case 'home':
       default:
-        return <Home onTabPress={handleTabPress} onRecentReports={handleRecentReports} />;
+        return <Welcome onTabPress={handleTabPress} />;
     }
   };
 

@@ -20,7 +20,7 @@ import { useSlideIn } from '../_transitions/slideIn';
 import { useUserProfile } from '../_contexts/UserProfileContext';
 
 // Import API hooks
-import { useVerifyOtp, useGenerateOtp } from '../_hooks/useApi';
+import { useVerifyOtp, useGenerateLoginOtp } from '../_hooks/useApi';
 import { formatApiError } from '../_utils/apiHelpers';
 import { notificationManager, DomainEventType } from '../_utils/notificationManager';
 
@@ -45,7 +45,7 @@ const LogInVerification: React.FC<Props> = ({ onBack, phoneNumber, onSuccess }) 
 
   // API hooks
   const verifyOtpMutation = useVerifyOtp();
-  const generateOtpMutation = useGenerateOtp();
+  const generateOtpMutation = useGenerateLoginOtp();
 
   useEffect(() => {
     slideAnimation.slideIn();

@@ -30,14 +30,29 @@ export const apiClient = axios.create({
 export const TOKEN_KEY = 'resqline_auth_token';
 export const USER_ID_KEY = 'resqline_user_id';
 
+const PUBLIC_AUTH_ENDPOINTS = [
+  '/users/register',
+  '/otp/register/send',
+  '/otp/register/verify',
+  '/otp/login/send',
+  '/otp/login/verify',
+];
+
+const isPublicAuthEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  return PUBLIC_AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
+};
+
 
 // Request interceptor to add auth token and request context
 apiClient.interceptors.request.use(
   async (config) => {
     try { 
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
-      if (token) {
+      if (token && !isPublicAuthEndpoint(config.url)) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else if (config.headers?.Authorization) {
+        delete config.headers.Authorization;
       }
       
       // Add request context headers (correlation ID, request ID, timestamp)

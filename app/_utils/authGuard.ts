@@ -2,6 +2,38 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { TOKEN_KEY } from '../_api/config';
 import { notificationManager, DomainEventType } from './notificationManager';
+import { jwtDecode } from 'jwt-decode';
+
+
+interface JwtPayload {
+  exp?: number;
+}
+
+const clearStoredAuth = async () => {
+  try {
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+  } catch (error) {
+    console.warn('Failed to clear stored auth token:', error);
+  }
+};
+
+const isTokenValid = (token: string): boolean => {
+  try {
+    const payload = jwtDecode<JwtPayload>(token);
+
+    // If no expiration claim exists, treat token as invalid for safety.
+    if (!payload.exp) {
+      console.warn('Token has no exp claim; treating as invalid');
+      return false;
+    }
+
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    return payload.exp > nowInSeconds;
+  } catch (error) {
+    console.warn('Failed to decode token; treating as invalid', error);
+    return false;
+  }
+};
 
 // check if user is authenticated
 export const isAuthenticated = async (): Promise<boolean> => {
@@ -9,10 +41,21 @@ export const isAuthenticated = async (): Promise<boolean> => {
     const token = await SecureStore.getItemAsync(TOKEN_KEY);
     console.log('🔑 Auth Check - Token exists:', !!token);
     console.log('🔑 Token Key:', TOKEN_KEY);
-    if (token) {
-      console.log('🔑 Token length:', token.length, 'chars [VALUE REDACTED]');
+
+    if (!token) {
+      return false;
     }
-    return !!token;
+
+    console.log('🔑 Token length:', token.length, 'chars [VALUE REDACTED]');
+
+    const valid = isTokenValid(token);
+    if (!valid) {
+      console.log('⏰ Token expired/invalid, clearing local auth');
+      await clearStoredAuth();
+      return false;
+    }
+
+    return true;
   } catch (error) {
     console.error('❌ Error checking authentication:', error);
     return false;
@@ -43,7 +86,7 @@ export const requireAuthentication = async () => {
 //for logout functionality
 export const handleLogout = async () => {
   try {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await clearStoredAuth();
     
     // Show logout notification
     await notificationManager.handleDomainEvent({

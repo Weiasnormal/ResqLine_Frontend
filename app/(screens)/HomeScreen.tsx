@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, StatusBar } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../components/Header';
 import HomeBody from '../components/body/HomeBody';
 import FooterNav from '../components/FooterNav';
+import { requireAuthentication } from '../_utils/authGuard';
 
 interface HomeScreenProps {
   onTabPress?: (tab: string) => void;
@@ -11,6 +12,11 @@ interface HomeScreenProps {
 }
 
 const HomeScreen = ({ onTabPress, onRecentReports }: HomeScreenProps) => {
+  useEffect(() => {
+    // Ensure unauthenticated users are redirected out of protected home content.
+    requireAuthentication();
+  }, []);
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
