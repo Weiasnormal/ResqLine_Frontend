@@ -89,6 +89,9 @@ const ViewDetailsScreen: React.FC = () => {
     
     // Animation specific values
     const scrollY = useRef(new Animated.Value(0)).current;
+    
+    // ADDED: The animation value for sliding the sheet up and down (starts off-screen)
+    const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
     const { data: report, isLoading, error } = useReport(reportId);
 
@@ -133,9 +136,29 @@ const ViewDetailsScreen: React.FC = () => {
         extrapolate: 'clamp',
     });
 
+    // ADDED: Smooth opening animation function
+    const handleOpenSheet = () => {
+        setDetailsVisible(true); // Mount the component first
+        Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            friction: 25,   // Bounciness
+            tension: 45,   // Speed
+        }).start();
+    };
+
+    // MODIFIED: Smooth closing animation function
     const handleCloseSheet = () => {
-        setDetailsVisible(false);
-        scrollY.setValue(0);
+        // Slide down first...
+        Animated.timing(slideAnim, {
+            toValue: SCREEN_HEIGHT,
+            duration: 150,
+            useNativeDriver: true,
+        }).start(() => {
+            // ...then unmount and reset
+            setDetailsVisible(false);
+            scrollY.setValue(0);
+        });
     };
 
     if (isLoading) {
@@ -171,10 +194,9 @@ const ViewDetailsScreen: React.FC = () => {
                         initialRegion={{
                             latitude: latitude,
                             longitude: longitude,
-                            latitudeDelta: 0.01, // Keep it zoomed in close
+                            latitudeDelta: 0.01,
                             longitudeDelta: 0.01,
                         }}
-                        // Disable interactions since it's meant to be a preview banner initially
                         zoomEnabled={true}
                         scrollEnabled={true}
                         pitchEnabled={false}
@@ -204,25 +226,27 @@ const ViewDetailsScreen: React.FC = () => {
                 </View>
             </SafeAreaView>
 
-            {/* Base Screen UI (Hidden when Details Modal is active to prevent blocking interactions) */}
+            {/* Base Screen UI */}
             {!detailsVisible && (
-                <>
-                    <TouchableOpacity style={styles.expandFab} onPress={() => setDetailsVisible(true)} activeOpacity={0.8}>
+                // ADDED: Opacity wrapping view to make the transition look less abrupt when opening
+                <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+                    <TouchableOpacity style={styles.expandFab} onPress={handleOpenSheet} activeOpacity={0.8}>
                         <Ionicons name="expand-outline" size={20} color="#fff" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.summaryCard} activeOpacity={0.9} onPress={() => setDetailsVisible(true)}>
+                    <TouchableOpacity style={styles.summaryCard} activeOpacity={0.9} onPress={handleOpenSheet}>
                         <Text style={styles.summaryTitle} numberOfLines={2}>{title}</Text>
                         <View style={styles.statusBadge}>
                             <Text style={styles.statusBadgeText}>{statusLabel}</Text>
                         </View>
                     </TouchableOpacity>
-                </>
+                </View>
             )}
 
             {/* Simulated Animated Bottom Sheet "Modal" */}
             {detailsVisible && (
-                <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]} pointerEvents="box-none">
+                // ADDED: transform: [{ translateY: slideAnim }] and changed to Animated.View
+                <Animated.View style={[StyleSheet.absoluteFill, { zIndex: 100, transform: [{ translateY: slideAnim }] }]} pointerEvents="box-none">
                     {/* Background overlay that allows tapping the map behind it */}
                     <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]} pointerEvents="none" />
 
@@ -358,12 +382,13 @@ const ViewDetailsScreen: React.FC = () => {
                             </View>
                         </SafeAreaView>
                     </Animated.ScrollView>
-                </View>
+                </Animated.View>
             )}
         </View>
     );
 };
 
+// ... keep all your existing styles exactly the same ...
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -445,7 +470,7 @@ const styles = StyleSheet.create({
     expandFab: {
         position: 'absolute',
         right: 24,
-        bottom: 140,
+        bottom: 180,
         width: 34,
         height: 34,
         borderRadius: 22,
