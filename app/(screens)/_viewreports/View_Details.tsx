@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 28,
         paddingHorizontal: 24,
         paddingTop: 24,
-        paddingBottom: 24,
+        paddingBottom: 44,
         elevation: 8,
     },
     summaryTitle: {

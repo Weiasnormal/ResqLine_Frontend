@@ -2,7 +2,6 @@ import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { requestContextManager } from '../_utils/requestContext';
 import { errorLogger } from '../_utils/errorLogger';
-
 // Extend axios config to include metadata
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -14,8 +13,8 @@ declare module 'axios' {
 
 // Environment configuration
 export const API_BASE_URL = __DEV__ 
-  ? 'https://resqline-backend.onrender.com' // Development - use production backend for now
-  : 'https://resqline-backend.onrender.com'; // Production URL
+  ? process.env.EXPO_PUBLIC_LOCAL_DEVELOPMENT_URL
+  : process.env.EXPO_PUBLIC_LOCAL_PRODUCTION_URL;
 
 // Create axios instance
 export const apiClient = axios.create({
@@ -27,8 +26,8 @@ export const apiClient = axios.create({
 });
 
 // Token storage keys
-export const TOKEN_KEY = 'resqline_auth_token';
-export const USER_ID_KEY = 'resqline_user_id';
+export const TOKEN_KEY = process.env.EXPO_PUBLIC_LOCAL_TOKEN_KEY;
+export const USER_ID_KEY = process.env.EXPO_PUBLIC_LOCAL_USER_KEY;
 
 const PUBLIC_AUTH_ENDPOINTS = [
   '/users/register',
