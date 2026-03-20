@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Alert,
   TextInput,
   StatusBar,
   KeyboardAvoidingView,
@@ -13,20 +14,51 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import InlineTextField from '../components/inputs/InlineTextField';
+import { useDeleteAccount } from '../_hooks/useApi';
+import { handleLogout } from '../_utils/authGuard';
+import { formatApiError } from '../_utils/apiHelpers';
+import { notificationManager, DomainEventType } from '../_utils/notificationManager';
 
 const AccountDeletion: React.FC = () => {
   const router = useRouter();
   const [confirmation, setConfirmation] = useState('');
-  const [focused, setFocused] = useState(false);
+  const deleteAccountMutation = useDeleteAccount();
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleDelete = () => {
-    // perform deletion logic here (API call / clear storage)
-    // then redirect to welcome screen
-    router.replace('/WelcomeScreen');
+  const handleDelete = async () => {
+    if (!isDeletable) return;
+
+    try {
+      // Call backend deletion
+      const result = await deleteAccountMutation.mutateAsync();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Account deletion failed');
+      }
+
+      // Best-effort local logout + user feedback
+      // (useDeleteAccount already calls authApi.logout(), but we keep the same flow as ProfileBody)
+      await notificationManager.handleDomainEvent({
+        eventId: Date.now().toString(),
+        eventType: DomainEventType.AccountDeleted,
+        aggregateId: '',
+        aggregateType: 'User',
+        timestamp: new Date().toISOString(),
+        data: {},
+        correlationId: '',
+      });
+
+      // Ensure local auth is cleared and we navigate to Welcome
+      await handleLogout();
+    } catch (error: any) {
+      const errorMessage = formatApiError(error?.message || 'Failed to delete account');
+      Alert.alert('Delete Failed', errorMessage, [
+        { text: 'OK' },
+      ]);
+    }
   };
 
   const isDeletable = confirmation === 'DELETE';
@@ -67,11 +99,21 @@ const AccountDeletion: React.FC = () => {
 
           <View style={styles.footer}>
             <TouchableOpacity
-              style={[styles.deleteButton, !isDeletable && styles.deleteButtonDisabled]}
+              style={[
+                styles.deleteButton,
+                (!isDeletable || deleteAccountMutation.isPending) && styles.deleteButtonDisabled,
+              ]}
               onPress={handleDelete}
-              disabled={!isDeletable}
+              disabled={!isDeletable || deleteAccountMutation.isPending}
             >
-              <Text style={[styles.deleteText, !isDeletable && styles.deleteTextDisabled]}>Delete Account</Text>
+              <Text
+                style={[
+                  styles.deleteText,
+                  (!isDeletable || deleteAccountMutation.isPending) && styles.deleteTextDisabled,
+                ]}
+              >
+                {deleteAccountMutation.isPending ? 'Deleting...' : 'Delete Account'}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.cancelButton} onPress={handleBack}>

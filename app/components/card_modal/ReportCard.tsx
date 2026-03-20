@@ -39,6 +39,54 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
     return status.substring(0, maxChars).trim() + '.';
   };
 
+  const getStatusBadge = (status: string) => {
+    // `report.status` comes from `mapStatusToString()` in `app/_api/reports.ts`
+    // which yields: Submitted | Under Review | In Progress | Resolved | Rejected.
+    const normalized = status.trim();
+
+    switch (normalized) {
+      case 'Submitted':
+        return {
+          containerStyle: styles.submittedStatusContainer,
+          textStyle: styles.submittedStatusText,
+          label: 'Submitted',
+        };
+      case 'Under Review':
+        return {
+          containerStyle: styles.reviewStatusContainer,
+          textStyle: styles.reviewStatusText,
+          label: 'Under Review',
+        };
+      case 'In Progress':
+      case 'Dispatched':
+        return {
+          containerStyle: styles.dispatchedStatusContainer,
+          textStyle: styles.dispatchedStatusText,
+          // UI label matches the existing View Details timeline label
+          label: 'Dispatched',
+        };
+      case 'Resolved':
+        return {
+          containerStyle: styles.resolvedStatusContainer,
+          textStyle: styles.resolvedStatusText,
+          label: 'Resolved',
+        };
+      case 'Rejected':
+        return {
+          containerStyle: styles.rejectedStatusContainer,
+          textStyle: styles.rejectedStatusText,
+          label: 'Rejected',
+        };
+      default:
+        // Keep a safe default badge to avoid rendering glitches
+        return {
+          containerStyle: styles.dispatchedStatusContainer,
+          textStyle: styles.dispatchedStatusText,
+          label: normalized || 'Dispatched',
+        };
+    }
+  };
+
   // Helper function to show only city from location
   const truncateLocation = (location: string) => {
     // Split by comma and get the 4th element (city)
@@ -71,16 +119,16 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
             <Text style={styles.reportTitle} numberOfLines={2} ellipsizeMode="tail">
               {truncateTitle(report.title, 35)}
             </Text>
-            {/* Hardcoded status to 'Dispatched' - TODO: Implement dynamic status */}
-            <View style={[
-              styles.reportStatusContainer, 
-              styles.dispatchedStatusContainer
-            ]}>
-              <Text style={[
-                styles.reportStatus,
-                styles.dispatchedStatusText
-              ]}>{truncateStatus('Dispatched', 15)}</Text>
-            </View>
+            {(() => {
+              const badge = getStatusBadge(report.status);
+              return (
+                <View style={[styles.reportStatusContainer, badge.containerStyle]}>
+                  <Text style={[styles.reportStatus, badge.textStyle]}>
+                    {truncateStatus(badge.label, 15)}
+                  </Text>
+                </View>
+              );
+            })()}
           </View>
           <View style={styles.reportMetaRow}>
             <View style={styles.reportTypeContainer}>
@@ -194,6 +242,9 @@ const styles = StyleSheet.create({
   resolvedStatusContainer: {
     backgroundColor: '#E8F5E8',
   },
+  rejectedStatusContainer: {
+    backgroundColor: '#FFEAEA',
+  },
   submittedStatusText: {
     color: '#666',
   },
@@ -205,6 +256,9 @@ const styles = StyleSheet.create({
   },
   resolvedStatusText: {
     color: '#2E7D32',
+  },
+  rejectedStatusText: {
+    color: '#D32F2F',
   },
   reportMetaRow: {
     flexDirection: 'row',
