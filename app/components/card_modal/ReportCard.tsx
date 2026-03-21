@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 export interface Report {
-  id: string | number; // Accept both string (API IDs) and number for compatibility
+  id: string | number;
   title: string;
   status: string;
   type: string;
@@ -27,21 +27,20 @@ interface ReportCardProps {
 }
 
 const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = false }) => {
-  // Helper function to truncate title for 2 rows
+
   const truncateTitle = (title: string, maxChars: number = 35) => {
     if (title.length <= maxChars) return title;
     return title.substring(0, maxChars).trim() + '...';
   };
 
-  // Helper function to truncate status text
+
   const truncateStatus = (status: string, maxChars: number = 10) => {
     if (status.length <= maxChars) return status;
     return status.substring(0, maxChars).trim() + '.';
   };
 
   const getStatusBadge = (status: string) => {
-    // `report.status` comes from `mapStatusToString()` in `app/_api/reports.ts`
-    // which yields: Submitted | Under Review | In Progress | Resolved | Rejected.
+
     const normalized = status.trim();
 
     switch (normalized) {
@@ -62,7 +61,6 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
         return {
           containerStyle: styles.dispatchedStatusContainer,
           textStyle: styles.dispatchedStatusText,
-          // UI label matches the existing View Details timeline label
           label: 'Dispatched',
         };
       case 'Resolved':
@@ -78,7 +76,6 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
           label: 'Rejected',
         };
       default:
-        // Keep a safe default badge to avoid rendering glitches
         return {
           containerStyle: styles.dispatchedStatusContainer,
           textStyle: styles.dispatchedStatusText,
@@ -87,12 +84,10 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
     }
   };
 
-  // Helper function to show only city from location
+
   const truncateLocation = (location: string) => {
-    // Split by comma and get the 4th element (city)
-    // Address format: streetNumber, street, district, city, region, postalCode, country
+
     const parts = location.split(',').map(part => part.trim());
-    // Return city (index 3) or last part if less than 4 parts
     return parts[0] || parts[parts.length - 1] || location;
   };
 
@@ -108,8 +103,8 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
     <View style={[styles.reportCard, fullWidth ? styles.reportCardFullWidth : styles.reportCardFixed]}>
       <View style={styles.reportMainContent}>
         <View style={styles.reportImageContainer}>
-          <Image 
-            source={report.image ? { uri: `data:image/jpeg;base64,${report.image}` } : require('../../../assets/defaultimage.png')} 
+          <Image
+            source={report.image ? { uri: `data:image/jpeg;base64,${report.image}` } : require('../../../assets/defaultimage.png')}
             style={styles.reportImage}
             resizeMode="cover"
           />
@@ -132,10 +127,10 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
           </View>
           <View style={styles.reportMetaRow}>
             <View style={styles.reportTypeContainer}>
-              <Ionicons 
-                name={report.typeIcon as any} 
-                size={12} 
-                color="#FF8C42" 
+              <Ionicons
+                name={report.typeIcon as any}
+                size={12}
+                color="#FF8C42"
               />
               <Text style={styles.reportType}>{report.type}</Text>
             </View>
@@ -147,8 +142,8 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onPress, fullWidth = fa
           <Text style={styles.reportDate}>📅 {report.date}</Text>
         </View>
       </View>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         style={styles.viewDetailsButton}
         onPress={handlePress}
         activeOpacity={0.7}

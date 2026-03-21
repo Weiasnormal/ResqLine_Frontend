@@ -68,6 +68,28 @@ export const useReportStatusSignalR = (reportId?: string) => {
         
         // Track the timestamp of the status change for the View_Details timeline globally
         if (changedReportId && newStatus !== undefined) {
+          // Immediately update the React Query cache for the specific report to make UI react instantly (e.g. View Details timeline)
+          queryClient.setQueryData(['reports', 'detail', String(changedReportId)], (oldData: any) => {
+            if (!oldData || !oldData.data) return oldData;
+            return { 
+              ...oldData, 
+              data: { ...oldData.data, status: newStatus } 
+            };
+          });
+          
+          // Also immediately update any active lists (Home, Recent Reports, Status Filtered)
+          queryClient.setQueriesData({ queryKey: ['reports'] }, (oldData: any) => {
+            if (!oldData || !Array.isArray(oldData.data)) return oldData;
+            return {
+              ...oldData,
+              data: oldData.data.map((report: any) => 
+                String(report.id) === String(changedReportId) 
+                  ? { ...report, status: newStatus } 
+                  : report
+              )
+            };
+          });
+
           const rank = getStatusRank(newStatus);
           if (rank > 0) {
             const key = `report_timeline_${changedReportId}`;
@@ -99,7 +121,12 @@ export const useReportStatusSignalR = (reportId?: string) => {
         // Ignore parsing issues
       }
 
-      queryClient.invalidateQueries({ queryKey: ['reports'], exact: false });
+      // Delay the invalidation by 2.5 seconds to ensure the backend database
+      // transaction has fully committed before we refetch. Otherwise, the frontend
+      // fetches stale data immediately and overwrites our fresh SignalR cache.
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['reports'], exact: false });
+      }, 2500);
     };
 
     connection.on('ReportStatusChanged', handler);

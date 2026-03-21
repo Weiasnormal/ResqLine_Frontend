@@ -22,13 +22,13 @@ import { useReports, useReportsByStatus } from '../_hooks/useApi';
 import { Status, mapStatusToString, Category } from '../_api/reports';
 import { formatApiError } from '../_utils/apiHelpers';
 import { useReportStatusSignalR } from '../_hooks/useReportStatusSignalR';
-import { 
-  filterReports, 
-  sortReports, 
+import {
+  filterReports,
+  sortReports,
   SortOption,
   ReportStatus,
   ReportCategory,
-  FilterOptions 
+  FilterOptions
 } from '../_utils/reportFilters';
 
 interface RecentReportScreenProps {
@@ -37,7 +37,7 @@ interface RecentReportScreenProps {
 
 
 
-type FilterType = 'All' | 'Submitted' | 'Under Review';
+type FilterType = 'All' | 'Submitted' | 'Under Review' | 'Dispatched' | 'Resolved' | 'Rejected';
 
 const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
@@ -50,13 +50,16 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   const { data: allReports, isLoading: loadingAll, error: errorAll } = useReports({ pageSize: 50, pageOffset: 1 });
   const { data: submittedReports, isLoading: loadingSubmitted, error: errorSubmitted } = useReportsByStatus(Status.Submitted, { pageSize: 50, pageOffset: 1 });
   const { data: reviewReports, isLoading: loadingReview, error: errorReview } = useReportsByStatus(Status.Under_Review, { pageSize: 50, pageOffset: 1 });
-  
-  const slideAnimation = useSlideIn({ 
-    direction: 'right', 
-    distance: 300, 
-    duration: 300 
+  const { data: dispatchedReports, isLoading: loadingDispatched, error: errorDispatched } = useReportsByStatus(Status.In_Progress, { pageSize: 50, pageOffset: 1 });
+  const { data: resolvedReports, isLoading: loadingResolved, error: errorResolved } = useReportsByStatus(Status.Resolved, { pageSize: 50, pageOffset: 1 });
+  const { data: rejectedReports, isLoading: loadingRejected, error: errorRejected } = useReportsByStatus(Status.Rejected, { pageSize: 50, pageOffset: 1 });
+
+  const slideAnimation = useSlideIn({
+    direction: 'right',
+    distance: 300,
+    duration: 300
   });
-  
+
   useEffect(() => {
     slideAnimation.slideIn();
   }, []);
@@ -65,7 +68,7 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   const getCategoryIcon = (category: string): string => {
     const categoryLower = category.toLowerCase();
     if (categoryLower.includes('traffic') || categoryLower.includes('accident')) {
-      return 'car-crash';
+      return 'car-outline';
     }
     if (categoryLower.includes('fire')) {
       return 'flame';
@@ -85,13 +88,22 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   // Get filtered reports based on active filter
   const getFilteredReports = (): Report[] => {
     let apiReports: any[] = [];
-    
+
     switch (activeFilter) {
       case 'Submitted':
         apiReports = submittedReports || [];
         break;
       case 'Under Review':
         apiReports = reviewReports || [];
+        break;
+      case 'Dispatched':
+        apiReports = dispatchedReports || [];
+        break;
+      case 'Resolved':
+        apiReports = resolvedReports || [];
+        break;
+      case 'Rejected':
+        apiReports = rejectedReports || [];
         break;
       default:
         apiReports = allReports || [];
@@ -100,10 +112,10 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
     // Transform API data to match ReportCard expected format
     return apiReports.map(report => {
       // Convert category enum to string
-      const categoryString = typeof report.category === 'string' 
-        ? report.category 
+      const categoryString = typeof report.category === 'string'
+        ? report.category
         : Object.keys(Category).find(key => Category[key as keyof typeof Category] === report.category) || 'Other';
-      
+
       return {
         id: report.id,
         title: report.title || report.description || categoryString || 'Emergency Report',
@@ -122,12 +134,12 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   };
 
   const filteredReports = getFilteredReports();
-  const isLoading = loadingAll || loadingSubmitted || loadingReview;
-  const hasError = errorAll || errorSubmitted || errorReview;
+  const isLoading = loadingAll || loadingSubmitted || loadingReview || loadingDispatched || loadingResolved || loadingRejected;
+  const hasError = errorAll || errorSubmitted || errorReview || errorDispatched || errorResolved || errorRejected;
 
   const handleBack = () => {
     if (isAnimatingOut) return;
-    
+
     setIsAnimatingOut(true);
     slideAnimation.slideOut(() => {
       onBack();
@@ -145,7 +157,7 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
 
   const renderFilterPill = (filter: FilterType) => {
     const isActive = activeFilter === filter;
-    
+
     return (
       <TouchableOpacity
         key={filter}
@@ -168,8 +180,8 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
 
   const renderReportCard = ({ item }: { item: Report }) => (
     <View style={styles.reportCardWrapper}>
-      <ReportCard 
-        report={item} 
+      <ReportCard
+        report={item}
         onPress={handleReportPress}
         fullWidth={true}
       />
@@ -180,7 +192,7 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
-        
+
         <Animated.View style={[
           styles.content,
           {
@@ -192,22 +204,22 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
         ]}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={handleBack}
               activeOpacity={0.7}
             >
               <Ionicons name="chevron-back" size={24} color="#000" />
             </TouchableOpacity>
-            
+
             <Text style={styles.headerTitle}>Recent Reports</Text>
-            
+
             <View style={styles.headerSpacer} />
           </View>
 
-          {/* Filter Pills - Commented out for now */}
+          {/* Filter Pills */}
           <View style={styles.filtersContainer}>
-            {(['All', 'Submitted', 'Under Review' ] as FilterType[]).map(renderFilterPill)}
+            {(['All', 'Submitted', 'Under Review', 'Dispatched', 'Resolved', 'Rejected'] as FilterType[]).map(renderFilterPill)}
           </View>
 
           {/* Reports List */}
@@ -218,7 +230,7 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
                 <ActivityIndicator size="large" color="#FF9427" />
                 <Text style={styles.loadingText}>Loading reports...</Text>
               </View>
-            )} 
+            )}
 
             {/* Error State */}
             {hasError && !isLoading && (
@@ -228,7 +240,7 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
                 <Text style={styles.errorText}>
                   {formatApiError(hasError?.message || 'Unable to fetch reports')}
                 </Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.retryButton}
                   onPress={() => {
                     // Trigger refetch by changing activeFilter momentarily
@@ -256,8 +268,8 @@ const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
                     <Ionicons name="document-text-outline" size={48} color="#999" />
                     <Text style={styles.emptyText}>No reports found for "{activeFilter}"</Text>
                     <Text style={styles.emptySubtext}>
-                      {activeFilter === 'All' 
-                        ? 'You haven\'t submitted any reports yet' 
+                      {activeFilter === 'All'
+                        ? 'You haven\'t submitted any reports yet'
                         : `No reports with "${activeFilter}" status`}
                     </Text>
                   </View>
@@ -308,9 +320,10 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    gap: 14,
+    gap: 12,
     backgroundColor: '#F8F9FA',
   },
   filterPill: {

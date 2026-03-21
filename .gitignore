@@ -41,4 +41,4 @@ yarn-error.*
 /android
 
 # local markdown files
-*.md
+#*.md

@@ -130,7 +130,11 @@ export const reportsApi = {
       const allReportsResponse = await reportsApi.getAll(params);
 
       if (allReportsResponse.success && allReportsResponse.data) {
-        const filteredReports = allReportsResponse.data.filter(report => report.status === status);
+        const filteredReports = allReportsResponse.data.filter(report => {
+          // Robustly compare numeric API statuses against the requested Status Enum
+          return mapStatusToString(report.status) === mapStatusToString(status);
+        });
+        
         return {
           data: filteredReports,
           success: true,
@@ -146,7 +150,13 @@ export const reportsApi = {
   // Get report by ID
   getById: async (reportId: string): Promise<ApiResponse<ReportResponse>> => {
     try {
-      const response = await apiClient.get(`/reports/${reportId}`);
+      const response = await apiClient.get(`/reports/${reportId}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
 
       // Backend should return base64 string directly
       return handleApiResponse<ReportResponse>(response);
@@ -216,10 +226,11 @@ export const mapCategoryToEnum = (categoryString: string): Category => {
 export const mapStatusToString = (status: any): string => {
   // Handle numeric status IDs
   if (status === 0 || status === '0') return 'Submitted';
-  if (status === 1 || status === '1') return 'Under Review';
-  if (status === 2 || status === '2') return 'Dispatched';
-  if (status === 3 || status === '3') return 'Resolved';
-  if (status === 4 || status === '4') return 'Rejected';
+  if (status === 1 || status === '1') return 'Submitted';
+  if (status === 2 || status === '2') return 'Under Review';
+  if (status === 3 || status === '3') return 'Dispatched';
+  if (status === 4 || status === '4') return 'Resolved';
+  if (status === 5 || status === '5') return 'Rejected';
 
   // Fallback to strict string enum checks
   switch (status) {

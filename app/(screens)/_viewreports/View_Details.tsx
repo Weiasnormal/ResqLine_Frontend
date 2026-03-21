@@ -28,6 +28,7 @@ type TimelineItem = {
     time: string;
     reached: boolean;
     current: boolean;
+    isRejected?: boolean;
 };
 
 const categoryLabelMap: Record<number, string> = {
@@ -50,7 +51,7 @@ const getStatusRank = (status: any): number => {
         case 'Dispatched':
         case 'In Progress': return 2;
         case 'Resolved': return 3;
-        case 'Rejected': return 2;
+        case 'Rejected': return 2; // Treat Rejected as reaching the 3rd timeline node
         default: return 0;
     }
 };
@@ -170,6 +171,15 @@ const ViewDetailsScreen: React.FC = () => {
         const resolvedDate = localTimelineOffsets[3] ? new Date(localTimelineOffsets[3]) : new Date(createdDate.getTime() + 30 * 60 * 1000);
 
         const rank = report ? getStatusRank(report.status) : 0;
+        
+        if (statusLabel === 'Rejected') {
+            // Cut the pipeline short and show Rejected
+            return [
+                { label: 'Submitted', time: formatTime(createdDate), reached: true, current: false },
+                { label: 'Under Review', time: rank >= 1 ? formatTime(reviewDate) : '--:--', reached: true, current: false },
+                { label: 'Rejected', time: rank >= 2 ? formatTime(dispatchedDate) : '--:--', reached: true, current: true, isRejected: true },
+            ];
+        }
 
         return [
             { label: 'Submitted', time: formatTime(createdDate), reached: true, current: rank === 0 },
@@ -177,7 +187,7 @@ const ViewDetailsScreen: React.FC = () => {
             { label: 'Dispatched', time: rank >= 2 ? formatTime(dispatchedDate) : '--:--', reached: rank >= 2, current: rank === 2 },
             { label: 'Resolved', time: rank >= 3 ? formatTime(resolvedDate) : '--:--', reached: rank >= 3, current: rank === 3 },
         ];
-    }, [createdAt, report, localTimelineOffsets]);
+    }, [createdAt, report, localTimelineOffsets, statusLabel]);
 
     const getBadgeStyles = (status: string) => {
         const normalized = status.trim();
@@ -417,14 +427,15 @@ const ViewDetailsScreen: React.FC = () => {
                                                 <View
                                                     style={[
                                                         styles.timelineDot,
+                                                        item.isRejected ? styles.timelineDotRejected :
                                                         item.current ? styles.timelineDotCurrent : item.reached ? styles.timelineDotReached : styles.timelineDotPending,
                                                     ]}
                                                 />
                                                 {index < timeline.length - 1 ? <View style={styles.timelineLine} /> : null}
                                             </View>
-                                            <View style={[styles.timelineItemCard, !item.reached && styles.timelineItemCardPending]}>
-                                                <Text style={[styles.timelineLabel, !item.reached && styles.timelineLabelPending]}>{item.label}</Text>
-                                                <Text style={[styles.timelineTime, !item.reached && styles.timelineTimePending]}>{item.time}</Text>
+                                            <View style={[styles.timelineItemCard, !item.reached && styles.timelineItemCardPending, item.isRejected && styles.timelineItemCardRejected]}>
+                                                <Text style={[styles.timelineLabel, !item.reached && styles.timelineLabelPending, item.isRejected && styles.timelineLabelRejected]}>{item.label}</Text>
+                                                <Text style={[styles.timelineTime, !item.reached && styles.timelineTimePending, item.isRejected && styles.timelineTimeRejected]}>{item.time}</Text>
                                             </View>
                                         </View>
                                     ))}
@@ -682,6 +693,9 @@ const styles = StyleSheet.create({
     timelineDotPending: {
         backgroundColor: '#ECEEF2',
     },
+    timelineDotRejected: {
+        backgroundColor: '#D32F2F',
+    },
     timelineLine: {
         flex: 1,
         width: 2,
@@ -704,6 +718,9 @@ const styles = StyleSheet.create({
     timelineItemCardPending: {
         backgroundColor: '#ECEEF2',
     },
+    timelineItemCardRejected: {
+        backgroundColor: '#FFEAEA',
+    },
     timelineLabel: {
         fontSize: 16,
         color: '#222',
@@ -712,6 +729,9 @@ const styles = StyleSheet.create({
     timelineLabelPending: {
         color: '#A8ADB5',
     },
+    timelineLabelRejected: {
+        color: '#D32F2F',
+    },
     timelineTime: {
         fontSize: 14,
         color: '#222',
@@ -719,6 +739,9 @@ const styles = StyleSheet.create({
     },
     timelineTimePending: {
         color: '#A8ADB5',
+    },
+    timelineTimeRejected: {
+        color: '#D32F2F',
     },
     infoRow: {
         flexDirection: 'row',

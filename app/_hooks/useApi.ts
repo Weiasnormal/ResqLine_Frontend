@@ -150,13 +150,34 @@ export const useReportsByStatus = (status: Status, params?: GetReportsRequest) =
 };
 
 export const useReport = (reportId?: string) => {
+  const queryClient = useQueryClient();
+  
   return useQuery({
     queryKey: queryKeys.reports.byId(reportId!),
     queryFn: () => reportsApi.getById(reportId!),
     enabled: !!reportId,
+    // Add staleTime to prevent immediate background fetches from overwriting fresh SignalR data
+    // with a potentially stale response from the backend database (eventual consistency).
+    staleTime: 60 * 1000, 
+    initialData: () => {
+      // Seed detail view instantly using ANY report list cache (all, status-filtered, etc)
+      const lists = queryClient.getQueriesData<any>({ queryKey: ['reports'] });
+      for (const [key, data] of lists) {
+        // Skip detail queries to avoid circular seeding with stale data
+        if (key.includes('detail')) continue;
+        
+        if (data && Array.isArray(data.data)) {
+          const found = data.data.find((r: any) => String(r.id) === String(reportId));
+          if (found) {
+            return { success: true, data: found };
+          }
+        }
+      }
+      return undefined;
+    },
     select: (response) => {
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch report');
+      if (!response || !response.success) {
+        throw new Error(response?.error || 'Failed to fetch report');
       }
       return response.data;
     },
