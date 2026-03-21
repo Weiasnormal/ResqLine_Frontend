@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
   Image,
   Linking,
   Animated,
@@ -22,6 +22,7 @@ import { mapStatusToString } from '../../_api/reports';
 import HospitalIcon from '../../../assets/EmergencyIcons/hospital.svg';
 import FireIcon from '../../../assets/EmergencyIcons/fire.svg';
 import PoliceIcon from '../../../assets/EmergencyIcons/police.svg';
+import { useReportStatusSignalR } from '../../_hooks/useReportStatusSignalR';
 
 interface HomeBodyProps {
   onTabPress?: (tab: string) => void;
@@ -33,14 +34,17 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
   const [selectedCategory, setSelectedCategory] = useState<DepartmentCategory | null>(null);
   const [scaleAnim] = useState(new Animated.Value(1));
 
+  // Real-time report status updates for cards on Home.
+  useReportStatusSignalR();
+
   // Fetch real reports from API (pageOffset is 1-based)
   const { data: allReports = [], isLoading: reportsLoading, error: reportsError } = useReports({ pageSize: 50, pageOffset: 1 });
 
   // Debug logging
   React.useEffect(() => {
-  console.log('🏠 HomeBody - Reports state:');
-  console.log('  Loading:', reportsLoading);
-  console.log('  Error:', reportsError?.message || 'None');
+    console.log('🏠 HomeBody - Reports state:');
+    console.log('  Loading:', reportsLoading);
+    console.log('  Error:', reportsError?.message || 'None');
     console.log('  Reports count:', allReports.length);
     // Commented out to avoid logging large report objects with base64 images
     // if (allReports.length > 0) {
@@ -58,7 +62,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
   const getCategoryIcon = (category: string): string => {
     const categoryLower = category.toLowerCase();
     if (categoryLower.includes('traffic') || categoryLower.includes('accident')) {
-      return 'car-crash';
+      return 'car-outline';
     }
     if (categoryLower.includes('fire')) {
       return 'flame';
@@ -80,10 +84,10 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
     .slice(0, 5)
     .map(report => {
       // Convert category enum to string
-      const categoryString = typeof report.category === 'string' 
-        ? report.category 
+      const categoryString = typeof report.category === 'string'
+        ? report.category
         : Object.keys(require('../../_api/reports').Category).find(key => require('../../_api/reports').Category[key] === report.category) || 'Other';
-      
+
       return {
         id: report.id, // Use original ID as string to avoid duplicate keys
         title: report.description || categoryString || 'Emergency Report',
@@ -187,7 +191,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
 
   const getSelectedCategoryData = () => {
     if (!selectedCategory) return { title: '', departments: [] };
-    
+
     const categoryData = hotlineCategories.find(cat => cat.id === selectedCategory);
     return {
       title: categoryData?.title || '',
@@ -234,8 +238,8 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
             onPress={action.onPress}
             activeOpacity={0.7}
           >
-            <Image 
-              source={action.iconSource} 
+            <Image
+              source={action.iconSource}
               style={styles.actionBoxIcon}
               resizeMode="contain"
             />
@@ -248,7 +252,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Emergency Hotlines</Text>
         <Text style={styles.sectionSubtitle}>Tap to connect instantly with local responders</Text>
-        
+
         <View style={styles.categoriesContainer}>
           {hotlineCategories.map((category) => (
             <TouchableOpacity
@@ -259,7 +263,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
             >
               <View style={styles.categoryContent}>
                 <View style={styles.iconContainer}>
-                  <category.IconComponent 
+                  <category.IconComponent
                     width={42}
                     height={42}
                   />
@@ -274,7 +278,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
           ))}
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.seeAllButton}
           onPress={() => onTabPress?.('hotline')}
           activeOpacity={0.7}
@@ -287,7 +291,7 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Your Recent Reports</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => onRecentReports?.()}
             activeOpacity={0.7}
           >
@@ -321,16 +325,16 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
         )}
 
         {!reportsLoading && recentReports.length > 0 && (
-          <ScrollView 
+          <ScrollView
             horizontal={true}
             showsHorizontalScrollIndicator={false}
             style={styles.reportsScrollView}
             contentContainerStyle={styles.reportsScrollContent}
           >
             {recentReports.map((report) => (
-              <ReportCard 
-                key={report.id} 
-                report={report} 
+              <ReportCard
+                key={report.id}
+                report={report}
                 onPress={handleReportPress}
               />
             ))}
@@ -341,11 +345,11 @@ const HomeBody: React.FC<HomeBodyProps> = ({ onTabPress, onRecentReports }) => {
       {/* Safety Tips Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Safety Tips</Text>
-        
+
         <View style={styles.safetyTipsGrid}>
           {safetyTips.map((tip) => (
-            <Animated.View 
-              key={tip.id} 
+            <Animated.View
+              key={tip.id}
               style={[styles.safetyTipWrapper, { transform: [{ scale: scaleAnim }] }]}
             >
               <TouchableOpacity
@@ -410,7 +414,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   bottomSection: {
-    backgroundColor: '#F2F4F6', 
+    backgroundColor: '#F2F4F6',
     marginTop: 10,
     paddingHorizontal: 20,
     paddingVertical: 20,
@@ -579,8 +583,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   categoryIcon: {
-    width:40,
-    height:40,
+    width: 40,
+    height: 40,
   },
 });
 

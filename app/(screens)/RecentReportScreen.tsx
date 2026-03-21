@@ -21,6 +21,7 @@ import { router } from 'expo-router';
 import { useReports, useReportsByStatus } from '../_hooks/useApi';
 import { Status, mapStatusToString, Category } from '../_api/reports';
 import { formatApiError } from '../_utils/apiHelpers';
+import { useReportStatusSignalR } from '../_hooks/useReportStatusSignalR';
 import { 
   filterReports, 
   sortReports, 
@@ -41,6 +42,9 @@ type FilterType = 'All' | 'Submitted' | 'Under Review';
 const RecentReportScreen: React.FC<RecentReportScreenProps> = ({ onBack }) => {
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+
+  // Real-time report status updates for cards in "Recent Reports".
+  useReportStatusSignalR();
 
   // API hooks for different report states
   const { data: allReports, isLoading: loadingAll, error: errorAll } = useReports({ pageSize: 50, pageOffset: 1 });

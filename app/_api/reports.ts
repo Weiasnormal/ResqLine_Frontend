@@ -37,7 +37,7 @@ export interface CreateReportRequest {
 
 export interface ReportResponse {
   id: string;
-  images: string[]; 
+  images: string[];
   category: Category;
   // title: string; 
   description?: string;
@@ -63,7 +63,7 @@ export const reportsApi = {
         hasDescription: !!data.description,
         location: data.location,
       });
-      
+
       const response = await apiClient.post('/reports', {
         Images: data.images || [], // Backend expects 'Image' not 'Images'
         Category: data.category,
@@ -72,12 +72,12 @@ export const reportsApi = {
           Latitude: data.location.latitude,
           Longitude: data.location.longitude,
           Altitude: data.location.altitude,
-          Accuracy: Math.round(data.location.accuracy), 
+          Accuracy: Math.round(data.location.accuracy),
           AltitudeAccuracy: Math.round(data.location.altitudeAccuracy),
           ReverseGeoCode: data.location.reverseGeoCode || '', // Reverse geocoded address
         },
       });
-      
+
       console.log('✅ Report created successfully:', response.data);
       return handleApiResponse<string>(response);
     } catch (error: any) {
@@ -98,7 +98,7 @@ export const reportsApi = {
       const sort = params.sort || 'CreatedAt';
       const pageSize = params.pageSize ?? 50;
       const pageOffset = params.pageOffset ?? 1;
-      
+
       const queryParams = new URLSearchParams({
         sort: sort,
         pageSize: pageSize.toString(),
@@ -107,13 +107,13 @@ export const reportsApi = {
 
       const url = `/reports?${queryParams.toString()}`;
       console.log('📥 Fetching reports from:', url);
-      
+
       const response = await apiClient.get(url);
       console.log('✅ Reports fetched successfully, count:', response.data?.length || 0);
       if (response.data?.length > 0) {
         console.log('📍 Sample report reverseGeoCode:', response.data[0].location?.reverseGeoCode || 'No address');
       }
-      
+
       // Backend should return base64 strings directly
       return handleApiResponse<ReportResponse[]>(response);
     } catch (error: any) {
@@ -128,7 +128,7 @@ export const reportsApi = {
   getByStatus: async (status: Status, params: GetReportsRequest = {}): Promise<ApiResponse<ReportResponse[]>> => {
     try {
       const allReportsResponse = await reportsApi.getAll(params);
-      
+
       if (allReportsResponse.success && allReportsResponse.data) {
         const filteredReports = allReportsResponse.data.filter(report => report.status === status);
         return {
@@ -136,7 +136,7 @@ export const reportsApi = {
           success: true,
         };
       }
-      
+
       return allReportsResponse;
     } catch (error) {
       return handleApiError(error);
@@ -147,7 +147,7 @@ export const reportsApi = {
   getById: async (reportId: string): Promise<ApiResponse<ReportResponse>> => {
     try {
       const response = await apiClient.get(`/reports/${reportId}`);
-      
+
       // Backend should return base64 string directly
       return handleApiResponse<ReportResponse>(response);
     } catch (error) {
@@ -213,19 +213,38 @@ export const mapCategoryToEnum = (categoryString: string): Category => {
 };
 
 // Helper function to convert backend status enum to frontend string
-export const mapStatusToString = (status: Status): string => {
+export const mapStatusToString = (status: any): string => {
+  // Handle numeric status IDs
+  if (status === 0 || status === '0') return 'Submitted';
+  if (status === 1 || status === '1') return 'Under Review';
+  if (status === 2 || status === '2') return 'Dispatched';
+  if (status === 3 || status === '3') return 'Resolved';
+  if (status === 4 || status === '4') return 'Rejected';
+
+  // Fallback to strict string enum checks
   switch (status) {
     case Status.Submitted:
       return 'Submitted';
     case Status.Under_Review:
       return 'Under Review';
     case Status.In_Progress:
-      return 'In Progress';
+      return 'Dispatched';
     case Status.Resolved:
       return 'Resolved';
     case Status.Rejected:
       return 'Rejected';
-    default:
-      return 'Unknown';
   }
+
+  // Handle unexpected string statuses gracefully
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().replace('_', ' ');
+    if (s.includes('submit')) return 'Submitted';
+    if (s.includes('review')) return 'Under Review';
+    if (s.includes('progress') || s.includes('dispatch')) return 'Dispatched';
+    if (s.includes('resolv')) return 'Resolved';
+    if (s.includes('reject')) return 'Rejected';
+    return status;
+  }
+
+  return 'Unknown';
 };

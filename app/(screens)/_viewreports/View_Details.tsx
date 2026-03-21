@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import {
     ActivityIndicator,
     Animated,
@@ -15,11 +16,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-// Import react-native-maps
 import MapView, { Marker } from 'react-native-maps';
-
-import { useReport } from '../../_hooks/useApi';
-import { Category, Status } from '../../_api/reports';
+import { useReport, useReports } from '../../_hooks/useApi';
+import { useReportStatusSignalR } from '../../_hooks/useReportStatusSignalR';
+import { Category, Status, mapStatusToString } from '../../_api/reports';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -39,24 +39,18 @@ const categoryLabelMap: Record<number, string> = {
     [Category.Other]: 'Other',
 };
 
-const formatStatusLabel = (status: Status): string => {
-    switch (status) {
-        case Status.Submitted: return 'Submitted';
-        case Status.Under_Review: return 'Under Review';
-        case Status.In_Progress: return 'Dispatched';
-        case Status.Resolved: return 'Resolved';
-        case Status.Rejected: return 'Rejected';
-        default: return 'Submitted';
-    }
+const formatStatusLabel = (status: any): string => {
+    return mapStatusToString(status);
 };
 
-const getStatusRank = (status: Status): number => {
-    switch (status) {
-        case Status.Submitted: return 0;
-        case Status.Under_Review: return 1;
-        case Status.In_Progress: return 2;
-        case Status.Resolved: return 3;
-        case Status.Rejected: return 2;
+const getStatusRank = (status: any): number => {
+    const label = mapStatusToString(status);
+    switch (label) {
+        case 'Under Review': return 1;
+        case 'Dispatched':
+        case 'In Progress': return 2;
+        case 'Resolved': return 3;
+        case 'Rejected': return 2;
         default: return 0;
     }
 };
@@ -86,21 +80,82 @@ const ViewDetailsScreen: React.FC = () => {
     const reportId = (params.reportId || params.id || '') as string;
 
     const [detailsVisible, setDetailsVisible] = useState(false);
-    
+
     // Animation specific values
     const scrollY = useRef(new Animated.Value(0)).current;
-    
+
     // ADDED: The animation value for sliding the sheet up and down (starts off-screen)
     const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
-    const { data: report, isLoading, error } = useReport(reportId);
+    const { data: reportDetail, isLoading, error } = useReport(reportId);
+
+    const report = useMemo(() => {
+        if (!reportDetail) return undefined;
+        return {
+            ...reportDetail,
+            status: reportDetail.status
+        };
+    }, [reportDetail]);
+
+    const [localTimelineOffsets, setLocalTimelineOffsets] = useState<Record<number, number>>({});
+
+    // Load persisted timestamps for this report
+    useEffect(() => {
+        if (!reportId) return;
+        SecureStore.getItemAsync(`report_timeline_${reportId}`)
+            .then((res) => {
+                if (res) {
+                    setLocalTimelineOffsets(JSON.parse(res));
+                }
+            })
+            .catch(console.error);
+    }, [reportId]);
+
+    // Update timestamps when status changes
+    useEffect(() => {
+        if (!report || !report.status || !reportId) return;
+
+        const currentRank = getStatusRank(report.status);
+
+        // Fetch what is currently in SecureStore (it might have been updated by the global SignalR hook)
+        SecureStore.getItemAsync(`report_timeline_${reportId}`)
+            .then(res => {
+                const offsets = res ? JSON.parse(res) : {};
+                let updated = false;
+
+                // Fill in missing timestamps for reached states using current time
+                for (let r = 1; r <= currentRank; r++) {
+                    if (!offsets[r]) {
+                        offsets[r] = Date.now();
+                        updated = true;
+                    }
+                }
+
+                if (updated) {
+                    SecureStore.setItemAsync(`report_timeline_${reportId}`, JSON.stringify(offsets)).catch(console.error);
+                }
+
+                // Update component state
+                setLocalTimelineOffsets((prevOffsets) => {
+                    if (JSON.stringify(prevOffsets) !== JSON.stringify(offsets)) {
+                        return offsets;
+                    }
+                    return prevOffsets;
+                });
+            })
+            .catch(console.error);
+    }, [report?.status, reportId]);
+
+    // Real-time updates for this report's status badge.
+    // Also helps keep status labels consistent when this report status changes.
+    useReportStatusSignalR(reportId);
 
     const title = report?.description || (report ? categoryLabelMap[report.category] : 'Report Details') || 'Report Details';
     const statusLabel = report ? formatStatusLabel(report.status) : 'Submitted';
     const categoryLabel = report ? categoryLabelMap[report.category] || 'Other' : 'Other';
     const locationLabel = report?.location?.reverseGeoCode || 'Location unavailable';
     const createdAt = report?.createdAt || new Date().toISOString();
-    
+
     // Extract map coordinates safely
     const hasCoordinates = typeof report?.location?.latitude === 'number' && typeof report?.location?.longitude === 'number';
     const latitude = report?.location?.latitude || 14.0716; // Fallback to San Pablo City
@@ -108,9 +163,11 @@ const ViewDetailsScreen: React.FC = () => {
 
     const timeline = useMemo<TimelineItem[]>(() => {
         const createdDate = new Date(createdAt);
-        const reviewDate = new Date(createdDate.getTime() + 3 * 60 * 1000);
-        const dispatchedDate = new Date(createdDate.getTime() + 8 * 60 * 1000);
-        const resolvedDate = new Date(createdDate.getTime() + 30 * 60 * 1000);
+
+        // Fallback to mock times if local timestamp is missing (e.g. initial render before useEffect runs)
+        const reviewDate = localTimelineOffsets[1] ? new Date(localTimelineOffsets[1]) : new Date(createdDate.getTime() + 3 * 60 * 1000);
+        const dispatchedDate = localTimelineOffsets[2] ? new Date(localTimelineOffsets[2]) : new Date(createdDate.getTime() + 8 * 60 * 1000);
+        const resolvedDate = localTimelineOffsets[3] ? new Date(localTimelineOffsets[3]) : new Date(createdDate.getTime() + 30 * 60 * 1000);
 
         const rank = report ? getStatusRank(report.status) : 0;
 
@@ -120,7 +177,26 @@ const ViewDetailsScreen: React.FC = () => {
             { label: 'Dispatched', time: rank >= 2 ? formatTime(dispatchedDate) : '--:--', reached: rank >= 2, current: rank === 2 },
             { label: 'Resolved', time: rank >= 3 ? formatTime(resolvedDate) : '--:--', reached: rank >= 3, current: rank === 3 },
         ];
-    }, [createdAt, report]);
+    }, [createdAt, report, localTimelineOffsets]);
+
+    const getBadgeStyles = (status: string) => {
+        const normalized = status.trim();
+        switch (normalized) {
+            case 'Submitted':
+                return { container: styles.submittedStatusContainer, text: styles.submittedStatusText };
+            case 'Under Review':
+                return { container: styles.reviewStatusContainer, text: styles.reviewStatusText };
+            case 'Dispatched':
+            case 'In Progress':
+                return { container: styles.dispatchedStatusContainer, text: styles.dispatchedStatusText };
+            case 'Resolved':
+                return { container: styles.resolvedStatusContainer, text: styles.resolvedStatusText };
+            case 'Rejected':
+                return { container: styles.rejectedStatusContainer, text: styles.rejectedStatusText };
+            default:
+                return { container: styles.dispatchedStatusContainer, text: styles.dispatchedStatusText };
+        }
+    };
 
     // Animate map pushing up off screen when scrolled past 90%
     const mapTranslateY = scrollY.interpolate({
@@ -189,7 +265,7 @@ const ViewDetailsScreen: React.FC = () => {
             {/* Map Group Animated Together */}
             <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: mapTranslateY }] }]}>
                 {hasCoordinates ? (
-                    <MapView 
+                    <MapView
                         style={styles.mapPreview}
                         initialRegion={{
                             latitude: latitude,
@@ -202,7 +278,7 @@ const ViewDetailsScreen: React.FC = () => {
                         pitchEnabled={false}
                         rotateEnabled={false}
                     >
-                        <Marker 
+                        <Marker
                             coordinate={{ latitude, longitude }}
                             title={categoryLabel}
                             description="Reported Location"
@@ -236,8 +312,8 @@ const ViewDetailsScreen: React.FC = () => {
 
                     <TouchableOpacity style={styles.summaryCard} activeOpacity={0.9} onPress={handleOpenSheet}>
                         <Text style={styles.summaryTitle} numberOfLines={2}>{title}</Text>
-                        <View style={styles.statusBadge}>
-                            <Text style={styles.statusBadgeText}>{statusLabel}</Text>
+                        <View style={[styles.statusBadge, getBadgeStyles(statusLabel).container]}>
+                            <Text style={[styles.statusBadgeText, getBadgeStyles(statusLabel).text]}>{statusLabel}</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -290,8 +366,8 @@ const ViewDetailsScreen: React.FC = () => {
                         <SafeAreaView style={[styles.modalContent, { minHeight: SCREEN_HEIGHT * 0.9, maxHeight: undefined }]}>
                             <View style={styles.modalScrollContent}>
                                 <Text style={styles.detailsTitle}>{title}</Text>
-                                <View style={styles.statusBadge}>
-                                    <Text style={styles.statusBadgeText}>{statusLabel}</Text>
+                                <View style={[styles.statusBadge, getBadgeStyles(statusLabel).container]}>
+                                    <Text style={[styles.statusBadgeText, getBadgeStyles(statusLabel).text]}>{statusLabel}</Text>
                                 </View>
 
                                 <View style={styles.metaRow}>
@@ -299,7 +375,7 @@ const ViewDetailsScreen: React.FC = () => {
                                         <Ionicons name="flame-outline" size={14} color="#FF8C42" />
                                         <Text style={styles.metaText}>{categoryLabel}</Text>
                                     </View>
-                                     <View style={{ width: 70 }} />
+                                    <View style={{ width: 70 }} />
                                     <View style={styles.metaItem}>
                                         <Ionicons name="location-outline" size={14} color="#666" />
                                         <Text style={styles.metaText} numberOfLines={1}>{locationLabel}</Text>
@@ -404,7 +480,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: 'rgba(242, 244, 246, 0.9)', 
+        backgroundColor: 'rgba(242, 244, 246, 0.9)',
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
@@ -457,16 +533,24 @@ const styles = StyleSheet.create({
     },
     statusBadge: {
         alignSelf: 'flex-start',
-        backgroundColor: '#FFF6CC',
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 6,
     },
     statusBadgeText: {
         fontSize: 15,
-        color: '#993000',
         fontFamily: 'OpenSans_600SemiBold',
     },
+    submittedStatusContainer: { backgroundColor: '#f5f5f5' },
+    reviewStatusContainer: { backgroundColor: '#E3F2FD' },
+    dispatchedStatusContainer: { backgroundColor: '#FFF3E0' },
+    resolvedStatusContainer: { backgroundColor: '#E8F5E8' },
+    rejectedStatusContainer: { backgroundColor: '#FFEAEA' },
+    submittedStatusText: { color: '#666' },
+    reviewStatusText: { color: '#1976D2' },
+    dispatchedStatusText: { color: '#F57C00' },
+    resolvedStatusText: { color: '#2E7D32' },
+    rejectedStatusText: { color: '#D32F2F' },
     expandFab: {
         position: 'absolute',
         right: 24,
@@ -489,8 +573,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         shadowColor: '#000',
         shadowOffset: {
-        width: 0,
-        height: 2,
+            width: 0,
+            height: 2,
         },
         shadowOpacity: 0.05,
         shadowRadius: 8,
