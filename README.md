@@ -32,6 +32,7 @@ Primary use cases:
 - Emergency report creation with category, description, location, and media
 - Location detection utilities and location confirmation modal
 - Report listing and filtering helpers
+- Real-time report status synchronization via SignalR
 - User profile update and account deletion screens
 - Reusable UI components for headers, footers, cards, modals, and input fields
 
@@ -44,6 +45,7 @@ Primary use cases:
 - TypeScript
 - Axios
 - @tanstack/react-query
+- @microsoft/signalr
 - expo-location, expo-image-picker, expo-secure-store
 
 ## Project Structure
@@ -104,11 +106,16 @@ Auth behavior:
 - JWT is read from expo-secure-store and injected into request headers
 - 401 responses clear auth storage and reset request correlation context
 
+Real-time behavior:
+- Live status updates are received via securely connected SignalR hubs (`/hub/Notification`).
+- Updates instantly seed the React Query caches to keep frontend UI timelines perfectly synchronized with the admin dashboard.
+
 Related API files:
 - app/_api/auth.ts
 - app/_api/user.ts
 - app/_api/reports.ts
 - app/_api/health.ts
+- app/_hooks/useReportStatusSignalR.ts
 
 ## App Flows
 
