@@ -38,7 +38,7 @@ const ReportBody = () => {
   // Memoized location fetcher using locationService for consistency
   const fetchLocation = useCallback(async () => {
     if (isLocationLoading) return; // Prevent duplicate calls
-    
+
     setIsLocationLoading(true);
     setLocationError(null);
     setCoords(null);
@@ -47,7 +47,7 @@ const ReportBody = () => {
     try {
       // Use locationService to get location (don't use cache for fresh reports)
       const location = await locationService.getCurrentLocation(false);
-      
+
       if (!location) {
         setLocationError('Failed to get location. Please ensure GPS is enabled and permissions are granted.');
         return;
@@ -112,7 +112,7 @@ const ReportBody = () => {
   const toggleDropdown = () => {
     const toValue = isDropdownOpen ? 0 : 1;
     setIsDropdownOpen(!isDropdownOpen);
-    
+
     Animated.timing(dropdownAnimation, {
       toValue,
       duration: 300,
@@ -154,7 +154,7 @@ const ReportBody = () => {
       // Convert all photos to base64 (up to 5)
       const base64Images: string[] = [];
       let totalSizeKB = 0;
-      
+
       for (const photo of photos) {
         const base64 = await convertImageToBase64(photo.uri);
         if (base64) {
@@ -162,10 +162,10 @@ const ReportBody = () => {
           totalSizeKB += Math.round(base64.length / 1024);
         }
       }
-      
+
       // Log images info
       console.log(`📸 Converting ${photos.length} images, total size: ${totalSizeKB} KB`);
-      
+
       // Warn if total images are very large (> 5MB)
       if (totalSizeKB > 5120) {
         Alert.alert(
@@ -173,7 +173,7 @@ const ReportBody = () => {
           `Total images size is ${totalSizeKB} KB. This may take longer to upload. Continue?`,
           [
             { text: 'Cancel', style: 'cancel', onPress: () => { throw new Error('Upload cancelled'); } },
-            { text: 'Continue', onPress: () => {} }
+            { text: 'Continue', onPress: () => { } }
           ]
         );
       }
@@ -193,13 +193,13 @@ const ReportBody = () => {
         },
       };
 
-        console.log('📤 Submitting report with:');
-        console.log('  - Category:', reportData.category);
-        console.log('  - Description length:', reportData.description.length);
-        console.log('  - Images count:', reportData.images.length);
-        console.log('  - Total size:', `${totalSizeKB} KB`);
-        console.log('  - Location:', `${reportData.location.latitude}, ${reportData.location.longitude}`);
-        console.log('  - ReverseGeoCode:', reportData.location.reverseGeoCode);
+      console.log('📤 Submitting report with:');
+      console.log('  - Category:', reportData.category);
+      console.log('  - Description length:', reportData.description.length);
+      console.log('  - Images count:', reportData.images.length);
+      console.log('  - Total size:', `${totalSizeKB} KB`);
+      console.log('  - Location:', `${reportData.location.latitude}, ${reportData.location.longitude}`);
+      console.log('  - ReverseGeoCode:', reportData.location.reverseGeoCode);
 
       // Submit report
       const result = await createReportMutation.mutateAsync(reportData);
@@ -231,19 +231,19 @@ const ReportBody = () => {
         setCoords(null);
         setCategory('');
         setPhotos([]);
-        
+
         // Optionally refetch location for next report
         fetchLocation();
       }
     } catch (error: any) {
-        console.error('❌ Report submission error:', error);
-        console.error('❌ Error response:', error.response?.data);
-        console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Report submission error:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
       const errorMessage = formatApiError(error.message || 'Failed to submit report');
-        Alert.alert(
-          'Submit Failed', 
-          errorMessage + (error.response?.data?.title ? `\n\nDetails: ${error.response.data.title}` : '')
-        );
+      Alert.alert(
+        'Submit Failed',
+        errorMessage + (error.response?.data?.title ? `\n\nDetails: ${error.response.data.title}` : '')
+      );
     }
   };
 
@@ -253,268 +253,268 @@ const ReportBody = () => {
 
   return (
     <>
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <TouchableOpacity 
-        style={styles.content} 
-        activeOpacity={1} 
-        onPress={() => {
-          if (isDropdownOpen) {
-            toggleDropdown();
-          }
-        }}
-      >
-        <View style={styles.section}>
-          <View style={styles.titleRow}>
-            <Text style={styles.sectionTitle}>Report an Emergency</Text>
-            <Ionicons name="information-circle-outline" size={20} color="#666" />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity
+          style={styles.content}
+          activeOpacity={1}
+          onPress={() => {
+            if (isDropdownOpen) {
+              toggleDropdown();
+            }
+          }}
+        >
+          <View style={styles.section}>
+            <View style={styles.titleRow}>
+              <Text style={styles.sectionTitle}>Report an Emergency</Text>
+              <Ionicons name="information-circle-outline" size={20} color="#666" />
+            </View>
+            <Text style={styles.subtitle}>Provide details to help responders act fast</Text>
           </View>
-          <Text style={styles.subtitle}>Provide details to help responders act fast</Text>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Add Photo {photos.length}/1 <Text style={styles.required}>*</Text></Text>
-          <View style={styles.photoContainer}>
-            <TouchableOpacity style={styles.photoButton} onPress={handleAddPhoto} disabled={photos.length >= 1}>
-              <Ionicons name="camera-outline" size={24} color={photos.length >= 1 ? "#ccc" : "#FF8C00"} />
-              <Text style={[styles.photoButtonText, photos.length >= 1 && styles.photoButtonTextDisabled]}>Add {'\n'}Photo</Text>
-            </TouchableOpacity>
-            
-            {photos.length > 0 && (
-              <ScrollView 
-                style={styles.photosList}
-                contentContainerStyle={styles.photosListContent}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-              >
-                {photos.map((photo) => (
-                  <TouchableOpacity 
-                    key={photo.id} 
-                    style={styles.photoItem}
-                    onPress={() => handlePhotoLongPress(photo)}
-                  >
-                    <TouchableOpacity 
-                      style={styles.closeButton}
-                      onPress={() => removePhoto(photo.id)}
-                    >
-                      <Ionicons name="close-circle" size={18} color="#FF4444" />
-                    </TouchableOpacity>
-                    <Image source={{ uri: photo.uri }} style={styles.photoThumbnail} />
-                    <Text style={styles.photoName}>Photo {photos.indexOf(photo) + 1}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
-          </View>
-        </View>
+          <View style={styles.section}>
+            <Text style={styles.label}>Add Photo {photos.length}/1 <Text style={styles.required}>*</Text></Text>
+            <View style={styles.photoContainer}>
+              <TouchableOpacity style={styles.photoButton} onPress={handleAddPhoto} disabled={photos.length >= 1}>
+                <Ionicons name="camera-outline" size={24} color={photos.length >= 1 ? "#ccc" : "#FF8C00"} />
+                <Text style={[styles.photoButtonText, photos.length >= 1 && styles.photoButtonTextDisabled]}>Add {'\n'}Photo</Text>
+              </TouchableOpacity>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Type of Emergency <Text style={styles.required}>*</Text></Text>
-          <View style={styles.dropdownContainer}>
-            <TouchableOpacity
-              style={[styles.dropdownButton, category === '' ? styles.pickerError : null]}
-              onPress={toggleDropdown}
-            >
-              <Text style={[styles.dropdownButtonText, category === '' && styles.placeholderText]}>
-                {getSelectedCategoryLabel()}
-              </Text>
-              <Animated.View
-                style={{
-                  transform: [{
-                    rotate: dropdownAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0deg', '180deg'],
-                    })
-                  }]
-                }}
-              >
-                <Ionicons name="chevron-down" size={20} color="#666" />
-              </Animated.View>
-            </TouchableOpacity>
-            
-            {isDropdownOpen && (
-              <Animated.View
-                style={[
-                  styles.dropdownMenu,
-                  {
-                    opacity: dropdownAnimation,
-                    transform: [{
-                      scaleY: dropdownAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 1],
-                      })
-                    }]
-                  }
-                ]}
-              >
-                <ScrollView 
-                  style={styles.dropdownScroll} 
-                  showsVerticalScrollIndicator={true}
-                  nestedScrollEnabled={true}
-                  keyboardShouldPersistTaps="handled"
+              {photos.length > 0 && (
+                <ScrollView
+                  style={styles.photosList}
+                  contentContainerStyle={styles.photosListContent}
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={false}
                 >
-                  {categories.map((cat) => (
+                  {photos.map((photo) => (
                     <TouchableOpacity
-                      key={cat.value}
-                      style={[
-                        styles.dropdownItem,
-                        category === cat.value && styles.dropdownItemSelected
-                      ]}
-                      onPress={() => selectCategory(cat.value, cat.label)}
+                      key={photo.id}
+                      style={styles.photoItem}
+                      onPress={() => handlePhotoLongPress(photo)}
                     >
-                      <Text style={[
-                        styles.dropdownItemText,
-                        category === cat.value && styles.dropdownItemTextSelected
-                      ]}>
-                        {cat.label}
-                      </Text>
-                      {category === cat.value && (
-                        <Ionicons name="checkmark" size={18} color="#FF4444" />
-                      )}
+                      <TouchableOpacity
+                        style={styles.closeButton}
+                        onPress={() => removePhoto(photo.id)}
+                      >
+                        <Ionicons name="close-circle" size={18} color="#FF4444" />
+                      </TouchableOpacity>
+                      <Image source={{ uri: photo.uri }} style={styles.photoThumbnail} />
+                      <Text style={styles.photoName}>Photo {photos.indexOf(photo) + 1}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-              </Animated.View>
-            )}
+              )}
+            </View>
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Description <Text style={styles.required}>*</Text></Text>
-            <TextInput
-              style={[styles.input, styles.textArea, description.trim() === '' ? styles.inputError : null]}
-              placeholder="Describe the emergency situation in detail"
-              value={description}
-              onChangeText={setDescription}
-              placeholderTextColor="#999"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <View style={styles.locationHeader}>
-              <Text style={styles.inputLabel}>Current Location <Text style={styles.required}>*</Text></Text>
+          <View style={styles.section}>
+            <Text style={styles.label}>Type of Emergency <Text style={styles.required}>*</Text></Text>
+            <View style={styles.dropdownContainer}>
               <TouchableOpacity
-                style={styles.locationRefreshButton}
-                onPress={fetchLocation}
-                disabled={isLocationLoading}
+                style={[styles.dropdownButton, category === '' ? styles.pickerError : null]}
+                onPress={toggleDropdown}
               >
-                <Ionicons 
-                  name={isLocationLoading ? "sync" : "refresh-outline"} 
-                  size={16} 
-                  color="#FF8C00" 
-                />
-                <Text style={styles.locationRefreshText}>
-                  {isLocationLoading ? 'Updating...' : 'Refresh GPS'}
+                <Text style={[styles.dropdownButtonText, category === '' && styles.placeholderText]}>
+                  {getSelectedCategoryLabel()}
                 </Text>
+                <Animated.View
+                  style={{
+                    transform: [{
+                      rotate: dropdownAnimation.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '180deg'],
+                      })
+                    }]
+                  }}
+                >
+                  <Ionicons name="chevron-down" size={20} color="#666" />
+                </Animated.View>
               </TouchableOpacity>
+
+              {isDropdownOpen && (
+                <Animated.View
+                  style={[
+                    styles.dropdownMenu,
+                    {
+                      opacity: dropdownAnimation,
+                      transform: [{
+                        scaleY: dropdownAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, 1],
+                        })
+                      }]
+                    }
+                  ]}
+                >
+                  <ScrollView
+                    style={styles.dropdownScroll}
+                    showsVerticalScrollIndicator={true}
+                    nestedScrollEnabled={true}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {categories.map((cat) => (
+                      <TouchableOpacity
+                        key={cat.value}
+                        style={[
+                          styles.dropdownItem,
+                          category === cat.value && styles.dropdownItemSelected
+                        ]}
+                        onPress={() => selectCategory(cat.value, cat.label)}
+                      >
+                        <Text style={[
+                          styles.dropdownItemText,
+                          category === cat.value && styles.dropdownItemTextSelected
+                        ]}>
+                          {cat.label}
+                        </Text>
+                        {category === cat.value && (
+                          <Ionicons name="checkmark" size={18} color="#FF4444" />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </Animated.View>
+              )}
             </View>
-            
-            {/* Read-only location input field */}
-            <TextInput
-              style={[styles.input, styles.readOnlyInput, address.trim() === '' ? styles.inputError : null]}
-              placeholder="Location will auto-fill from GPS..."
-              value={address}
-              editable={false}
-              selectTextOnFocus={false}
-              placeholderTextColor="#999"
-            />
-            
-            {/* Loading indicator overlay */}
-            {isLocationLoading && (
-              <View style={styles.loadingOverlay}>
-                <ActivityIndicator size="small" color="#FF8C00" />
-                <Text style={styles.loadingText}>Getting your location...</Text>
-              </View>
-            )}
-            
-            {locationError && (
-              <View style={styles.locationErrorContainer}>
-                <Ionicons name="warning-outline" size={14} color="#FF6B6B" />
-                <Text style={styles.locationErrorText}>{locationError}</Text>
-              </View>
-            )}
           </View>
-        </View>
 
-        {!isFormValid() && (
-          <View style={styles.validationContainer}>
-            <Ionicons name="information-circle-outline" size={16} color="#FF6B6B" />
-            <Text style={styles.validationText}>Please fill in all required fields (*) to submit your report</Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.reportButton, 
-            (isFormValid() && !createReportMutation.isPending) ? styles.reportButtonActive : styles.reportButtonDisabled
-          ]}
-          onPress={handleReport}
-          disabled={!isFormValid() || createReportMutation.isPending}
-        >
-          {createReportMutation.isPending ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#fff" />
-              <Text style={[styles.reportButtonText, { marginLeft: 8 }]}>Submitting...</Text>
-            </View>
-          ) : (
-            <Text style={[styles.reportButtonText, !isFormValid() && styles.reportButtonTextDisabled]}>
-              {isFormValid() ? 'Submit Emergency Report' : 'Complete Required Fields'}
-            </Text>
-          )}
-        </TouchableOpacity>
-      </TouchableOpacity>
-    </ScrollView>
-
-    {/* Photo Preview Modal */}
-    <Modal
-      visible={isPreviewVisible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={closePreview}
-    >
-      <View style={styles.modalOverlay}>
-        <TouchableOpacity 
-          style={styles.modalCloseArea} 
-          activeOpacity={1} 
-          onPress={closePreview}
-        >
-          <View style={styles.modalContent}>
-            <TouchableOpacity 
-              style={styles.modalCloseButton}
-              onPress={closePreview}
-            >
-              <Ionicons name="close-circle" size={32} color="#fff" />
-            </TouchableOpacity>
-            
-            {previewPhoto && (
-              <Image 
-                source={{ uri: previewPhoto.uri }} 
-                style={styles.previewImage}
-                resizeMode="contain"
+          <View style={styles.section}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Description <Text style={styles.required}>*</Text></Text>
+              <TextInput
+                style={[styles.input, styles.textArea, description.trim() === '' ? styles.inputError : null]}
+                placeholder="Describe the emergency situation in detail"
+                value={description}
+                onChangeText={setDescription}
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
               />
-            )}
-            
-            <View style={styles.previewFooter}>
-              <Text style={styles.previewText}>Tap photo to preview</Text>
-              <TouchableOpacity 
-                style={styles.deletePhotoButton}
-                onPress={() => {
-                  if (previewPhoto) {
-                    removePhoto(previewPhoto.id);
-                    closePreview();
-                  }
-                }}
-              >
-                <Ionicons name="trash-outline" size={20} color="#fff" />
-                <Text style={styles.deletePhotoText}>Delete Photo</Text>
-              </TouchableOpacity>
+            </View>
+            <View style={styles.inputContainer}>
+              <View style={styles.locationHeader}>
+                <Text style={styles.inputLabel}>Current Location <Text style={styles.required}>*</Text></Text>
+                <TouchableOpacity
+                  style={styles.locationRefreshButton}
+                  onPress={fetchLocation}
+                  disabled={isLocationLoading}
+                >
+                  <Ionicons
+                    name={isLocationLoading ? "sync" : "refresh-outline"}
+                    size={16}
+                    color="#FF8C00"
+                  />
+                  <Text style={styles.locationRefreshText}>
+                    {isLocationLoading ? 'Updating...' : 'Refresh GPS'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Read-only location input field */}
+              <TextInput
+                style={[styles.input, styles.readOnlyInput, address.trim() === '' ? styles.inputError : null]}
+                placeholder="Location will auto-fill from GPS..."
+                value={address}
+                editable={false}
+                selectTextOnFocus={false}
+                placeholderTextColor="#999"
+              />
+
+              {/* Loading indicator overlay */}
+              {isLocationLoading && (
+                <View style={styles.loadingOverlay}>
+                  <ActivityIndicator size="small" color="#FF8C00" />
+                  <Text style={styles.loadingText}>Getting your location...</Text>
+                </View>
+              )}
+
+              {locationError && (
+                <View style={styles.locationErrorContainer}>
+                  <Ionicons name="warning-outline" size={14} color="#FF6B6B" />
+                  <Text style={styles.locationErrorText}>{locationError}</Text>
+                </View>
+              )}
             </View>
           </View>
+
+          {!isFormValid() && (
+            <View style={styles.validationContainer}>
+              <Ionicons name="information-circle-outline" size={16} color="#FF6B6B" />
+              <Text style={styles.validationText}>Please fill in all required fields (*) to submit your report</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.reportButton,
+              (isFormValid() && !createReportMutation.isPending) ? styles.reportButtonActive : styles.reportButtonDisabled
+            ]}
+            onPress={handleReport}
+            disabled={!isFormValid() || createReportMutation.isPending}
+          >
+            {createReportMutation.isPending ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={[styles.reportButtonText, { marginLeft: 8 }]}>Submitting...</Text>
+              </View>
+            ) : (
+              <Text style={[styles.reportButtonText, !isFormValid() && styles.reportButtonTextDisabled]}>
+                {isFormValid() ? 'Submit Emergency Report' : 'Complete Required Fields'}
+              </Text>
+            )}
+          </TouchableOpacity>
         </TouchableOpacity>
-      </View>
-    </Modal>
+      </ScrollView>
+
+      {/* Photo Preview Modal */}
+      <Modal
+        visible={isPreviewVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closePreview}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalCloseArea}
+            activeOpacity={1}
+            onPress={closePreview}
+          >
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={closePreview}
+              >
+                <Ionicons name="close-circle" size={32} color="#fff" />
+              </TouchableOpacity>
+
+              {previewPhoto && (
+                <Image
+                  source={{ uri: previewPhoto.uri }}
+                  style={styles.previewImage}
+                  resizeMode="contain"
+                />
+              )}
+
+              <View style={styles.previewFooter}>
+                <Text style={styles.previewText}>Tap photo to preview</Text>
+                <TouchableOpacity
+                  style={styles.deletePhotoButton}
+                  onPress={() => {
+                    if (previewPhoto) {
+                      removePhoto(previewPhoto.id);
+                      closePreview();
+                    }
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#fff" />
+                  <Text style={styles.deletePhotoText}>Delete Photo</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 95,
     position: 'relative',
-  },  photoThumbnail: {
+  }, photoThumbnail: {
     width: 60,
     height: 50,
     borderRadius: 4,

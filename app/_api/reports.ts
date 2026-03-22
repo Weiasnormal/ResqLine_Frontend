@@ -134,7 +134,7 @@ export const reportsApi = {
           // Robustly compare numeric API statuses against the requested Status Enum
           return mapStatusToString(report.status) === mapStatusToString(status);
         });
-        
+
         return {
           data: filteredReports,
           success: true,
@@ -226,11 +226,10 @@ export const mapCategoryToEnum = (categoryString: string): Category => {
 export const mapStatusToString = (status: any): string => {
   // Handle numeric status IDs
   if (status === 0 || status === '0') return 'Submitted';
-  if (status === 1 || status === '1') return 'Submitted';
-  if (status === 2 || status === '2') return 'Under Review';
-  if (status === 3 || status === '3') return 'Dispatched';
-  if (status === 4 || status === '4') return 'Resolved';
-  if (status === 5 || status === '5') return 'Rejected';
+  if (status === 1 || status === '1') return 'Under Review';
+  if (status === 2 || status === '2') return 'Dispatched';
+  if (status === 3 || status === '3') return 'Resolved';
+  if (status === 4 || status === '4') return 'Rejected';
 
   // Fallback to strict string enum checks
   switch (status) {
